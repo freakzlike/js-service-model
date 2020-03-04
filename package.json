@@ -1,0 +1,68 @@
+{
+  "name": "js-service-model",
+  "version": "0.0.1",
+  "description": "Library for handling REST service requests with caching, aggregation and model definitions",
+  "license": "MIT",
+  "author": {
+    "name": "Freakzlike"
+  },
+  "keywords": [
+    "model",
+    "service",
+    "rest",
+    "library",
+    "api",
+    "request",
+    "cache"
+  ],
+  "homepage": "https://freakzlike.github.io/vue-service-model/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/freakzlike/vue-service-model.git"
+  },
+  "bugs": {
+    "url": "https://github.com/freakzlike/vue-service-model/issues"
+  },
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": [
+    "lib/**/*"
+  ],
+  "scripts": {
+    "clean": "rimraf ./lib",
+    "build": "npm run clean && tsc -p ./src/tsconfig.json",
+    "test:unit": "vue-cli-service test:unit",
+    "test:lib": "vue-cli-service test:unit --config=jest.lib.config.js",
+    "test:buildlib": "npm run build && npm run test:lib",
+    "lint": "vue-cli-service lint --no-fix",
+    "lint:autofix": "vue-cli-service lint",
+    "fullcheck": "npm run lint && npm run test:unit && npm run test:buildlib"
+  },
+  "dependencies": {
+    "axios": "^0.19.2"
+  },
+  "devDependencies": {
+    "@types/jest": "^25.1.3",
+    "@typescript-eslint/eslint-plugin": "^2.22.0",
+    "@typescript-eslint/parser": "^2.22.0",
+    "@vue/cli-plugin-babel": "^4.2.3",
+    "@vue/cli-plugin-eslint": "^4.2.3",
+    "@vue/cli-plugin-typescript": "^4.2.3",
+    "@vue/cli-plugin-unit-jest": "^4.2.3",
+    "@vue/cli-plugin-vuex": "^4.2.3",
+    "@vue/cli-service": "^4.2.3",
+    "@vue/eslint-config-standard": "^5.1.2",
+    "@vue/eslint-config-typescript": "^5.0.2",
+    "@vue/test-utils": "1.0.0-beta.29",
+    "eslint": "^6.8.0",
+    "eslint-plugin-import": "^2.20.1",
+    "eslint-plugin-node": "^11.0.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1",
+    "eslint-plugin-vue": "^6.2.1",
+    "rimraf": "^3.0.2",
+    "typescript": "^3.8.3",
+    "vue": "^2.6.10",
+    "vue-template-compiler": "^2.6.11"
+  }
+}
