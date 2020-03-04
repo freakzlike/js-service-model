@@ -1,19 +1,21 @@
-# JS Service model
+# Js service model
 
-**WIP: The core function of [vue-service-model](https://freakzlike.github.io/vue-service-model/) will be moved to this project!** 
+[![Build](https://github.com/freakzlike/js-service-model/workflows/Build/badge.svg)](https://github.com/freakzlike/js-service-model/actions)
+[![Latest Version](https://img.shields.io/npm/v/js-service-model.svg)](https://www.npmjs.com/package/js-service-model)
+[![License](https://img.shields.io/npm/l/js-service-model.svg)](https://github.com/freakzlike/js-service-model/blob/master/LICENSE)
 
-[![Build](https://github.com/freakzlike/vue-service-model/workflows/Build/badge.svg)](https://github.com/freakzlike/vue-service-model/actions)
-[![Latest Version](https://img.shields.io/npm/v/vue-service-model.svg)](https://www.npmjs.com/package/vue-service-model)
-[![License](https://img.shields.io/npm/l/vue-service-model.svg)](https://github.com/freakzlike/vue-service-model/blob/master/LICENSE)
+Core library for handling REST service requests with caching, aggregation and model definitions.
 
-[Vue.js](https://vuejs.org/) library for handling REST service requests with caching, aggregation and model definitions.
+**Framework integrations:**
+
+<a href="https://vuejs.org/" target="_blank"><img alt="Vue.js" width="25" src="https://vuejs.org/images/logo.png"> Vue.js</a>: <a href="https://freakzlike.github.io/vue-service-model/" target="_blank">vue-service-model</a>
 
 ## Features
 
 * Define models and easily handle REST service requests
 * Pass model data to REST service requests and retrieve model data from them
 * Aggregation for multiple parallel requests to the same url to avoid redundant requests. See [aggregation](#aggregation)
-* Uses [Vuex](https://vuex.vuejs.org/) to cache responses from service
+* Caches response from services
 * Uses [axios](https://github.com/axios/axios) for service request
 * ... [more later](#future)
 
@@ -45,14 +47,14 @@
 
 ## Installation
 ```sh
-npm install vue-service-model
+npm install js-service-model
 ```
 
 ## Example
 
 Definition of a simple `ServiceModel` without using fields. https://jsonplaceholder.typicode.com/albums/ is being used as an example REST JSON service.
 ```js
-import {ServiceModel} from 'vue-service-model'
+import {ServiceModel} from 'js-service-model'
 
 class Album extends ServiceModel {
   // Unique name to handle caching
@@ -90,7 +92,7 @@ album.data
 A `BaseModel` can be used to handle data from any source by passing the data when instantiating the model.
 
 ```js
-import {BaseModel, fields} from 'vue-service-model'
+import {BaseModel, fields} from 'js-service-model'
 
 class MyModel extends BaseModel {
   // Unique name
@@ -128,11 +130,11 @@ obj.getField('title')
 
 ### ServiceModel
 
-A `ServiceModel` extends from [`BaseModel`](#basemodel) and adds the [`ModelManager`](#modelmanager-objects) with a vuex
+A `ServiceModel` extends from [`BaseModel`](#basemodel) and adds the [`ModelManager`](#modelmanager-objects) with a caching
 store to keep track of [aggregation](#aggregation) of running requests and optionally caching the result of the services.
 
 ```js
-import {ServiceModel, fields} from 'vue-service-model'
+import {ServiceModel, fields} from 'js-service-model'
 
 class Album extends ServiceModel {
   static keyName = 'Album'
