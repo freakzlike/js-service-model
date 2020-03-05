@@ -36,11 +36,11 @@ class ServiceStore {
   /**
    * Dictionary of cached data structure by options.key
    */
-  private _data: Dictionary<ServiceStoreStateData>
+  protected _data: Dictionary<ServiceStoreStateData>
   /**
    * Dictionary of started requests by options.key
    */
-  private _requests: Dictionary<Promise<any>>
+  protected _requests: Dictionary<Promise<any>>
   /**
    * Default cache duration in seconds.
    * 0: no cache
@@ -48,7 +48,7 @@ class ServiceStore {
    */
   protected cacheDuration: number | null
 
-  constructor (cacheDuration: number | null = 30) {
+  constructor (cacheDuration: number | null) {
     this.cacheDuration = cacheDuration
     this._data = {}
     this._requests = {}

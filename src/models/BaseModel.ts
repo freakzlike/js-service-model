@@ -17,13 +17,6 @@ class NotDeclaredFieldException extends Error {
  */
 class BaseModel extends BaseClass {
   /**
-   * Name to use for unique model identification
-   * Will be used for vuex store name
-   */
-  public static keyName: string
-
-  // noinspection JSUnusedGlobalSymbols
-  /**
    * Field definitions for current model
    * e.g:
    * {id: new UUIDField(), name: new CharField()}
@@ -67,10 +60,6 @@ class BaseModel extends BaseClass {
   constructor (data: Dictionary<any> = {}) {
     super()
     this._data = data
-
-    if (!this.cls.keyName) {
-      console.warn('Missing keyName for Model', this.constructor.name)
-    }
 
     this.cls.register()
 

@@ -6,7 +6,6 @@ describe('models/ServiceModel', () => {
       const listUrl = 'list-url/'
 
       class TestModel extends ServiceModel {
-        public static keyName = 'TestModel'
         protected static urls = {
           BASE: 'base-url/',
           LIST: listUrl,
@@ -27,7 +26,6 @@ describe('models/ServiceModel', () => {
       }
 
       class TestModel extends ServiceModel {
-        public static keyName = 'TestModel'
         protected static parents = ['parent1', 'parent2']
         protected static urls = {
           LIST: 'list-url/{parent1}/text/{parent2}/'
@@ -41,7 +39,6 @@ describe('models/ServiceModel', () => {
       const baseUrl = 'base-url/'
 
       class TestModel extends ServiceModel {
-        public static keyName = 'TestModel'
         protected static urls = {
           BASE: baseUrl,
           DETAIL: 'detail-url/'
@@ -53,7 +50,6 @@ describe('models/ServiceModel', () => {
 
     it('should throw MissingUrlException', async () => {
       class TestModel extends ServiceModel {
-        public static keyName = 'TestModel'
       }
 
       await expect(TestModel.getListUrl()).rejects.toBeInstanceOf(MissingUrlException)
@@ -63,7 +59,6 @@ describe('models/ServiceModel', () => {
   describe('getDetailUrl', () => {
     it('should return urls.DETAIL', async () => {
       class TestModel extends ServiceModel {
-        public static keyName = 'TestModel'
         protected static urls = {
           BASE: 'base-url/',
           LIST: 'list-url',
@@ -88,7 +83,6 @@ describe('models/ServiceModel', () => {
       }
 
       class TestModel extends ServiceModel {
-        public static keyName = 'TestModel'
         protected static parents = ['parent1', 'parent2']
         protected static urls = {
           DETAIL: 'detail-url/{parent1}/text/{parent2}/{pk}/'
@@ -100,7 +94,6 @@ describe('models/ServiceModel', () => {
 
     it('should return urls.BASE', async () => {
       class TestModel extends ServiceModel {
-        public static keyName = 'TestModel'
         protected static urls = {
           BASE: 'base-url/'
         }
@@ -111,7 +104,6 @@ describe('models/ServiceModel', () => {
 
     it('should throw MissingUrlException', async () => {
       class TestModel extends ServiceModel {
-        public static keyName = 'TestModel'
       }
 
       await expect(TestModel.getDetailUrl(11)).rejects.toBeInstanceOf(MissingUrlException)
@@ -121,7 +113,6 @@ describe('models/ServiceModel', () => {
   describe('checkServiceParents', () => {
     it('should check no parents', async () => {
       class TestModel extends ServiceModel {
-        public static keyName = 'TestModel'
       }
 
       const spy = jest.spyOn(console, 'warn').mockImplementation()
@@ -132,7 +123,6 @@ describe('models/ServiceModel', () => {
 
     it('should check correct parents given', async () => {
       class TestModel extends ServiceModel {
-        public static keyName = 'TestModel'
         protected static parents = ['parent1', 'parent2']
       }
 
@@ -144,7 +134,6 @@ describe('models/ServiceModel', () => {
 
     it('should check parents not given', async () => {
       class TestModel extends ServiceModel {
-        public static keyName = 'TestModel'
         protected static parents = ['parent1', 'parent2']
       }
 
@@ -160,7 +149,6 @@ describe('models/ServiceModel', () => {
 
     it('should check missing parent', async () => {
       class TestModel extends ServiceModel {
-        public static keyName = 'TestModel'
         protected static parents = ['parent1', 'parent2']
       }
 
@@ -177,7 +165,6 @@ describe('models/ServiceModel', () => {
 
     it('should check parents given no parents defined', async () => {
       class TestModel extends ServiceModel {
-        public static keyName = 'TestModel'
       }
 
       const parents: ServiceParent = { parent1: 10 }
@@ -193,7 +180,6 @@ describe('models/ServiceModel', () => {
 
     it('should check parents too much parents given', async () => {
       class TestModel extends ServiceModel {
-        public static keyName = 'TestModel'
         protected static parents = ['parent1']
       }
 
@@ -209,63 +195,9 @@ describe('models/ServiceModel', () => {
     })
   })
 
-  describe('storeName', () => {
-    it('should return correct storeName', () => {
-      class TestModel extends ServiceModel {
-        public static keyName = 'AppTestModel'
-      }
-
-      const spy = jest.spyOn(console, 'warn').mockImplementation()
-      expect(TestModel.storeName).toBe('service/AppTestModel')
-
-      expect(console.warn).toHaveBeenCalledTimes(0)
-      spy.mockRestore()
-    })
-
-    it('should warn for missing keyName', () => {
-      class TestModel extends ServiceModel {
-      }
-
-      const spy = jest.spyOn(console, 'warn').mockImplementation()
-      expect(TestModel.storeName).toBe('service/TestModel')
-
-      expect(console.warn).toHaveBeenCalledTimes(1)
-      expect(spy.mock.calls).toEqual([
-        ['Missing keyName for Model', 'TestModel']
-      ])
-      spy.mockRestore()
-    })
-  })
-
-  describe('register', () => {
-    it('should register model and create store module', () => {
-      class TestModel extends ServiceModel {
-        public static keyName = 'TestModel'
-        protected static cacheDuration = 15
-      }
-
-      class OtherModel extends ServiceModel {
-        public static keyName = 'OtherModel'
-      }
-
-      expect(TestModel.store).toBeUndefined()
-      expect(OtherModel.store).toBeUndefined()
-
-      expect(TestModel.register()).toBe(true)
-      expect(OtherModel.register()).toBe(true)
-      expect(TestModel.register()).toBe(false)
-      expect(OtherModel.register()).toBe(false)
-
-      expect(TestModel.store).not.toBeUndefined()
-      expect(OtherModel.store).not.toBeUndefined()
-      expect(TestModel.store).not.toBe(OtherModel.store)
-    })
-  })
-
   describe('objects', () => {
     it('should return ModelManager instance', () => {
       class TestModel extends ServiceModel {
-        public static keyName = 'TestModel'
       }
 
       const modelManager = TestModel.objects
@@ -278,7 +210,6 @@ describe('models/ServiceModel', () => {
       }
 
       class TestModel extends ServiceModel {
-        public static keyName = 'TestModel'
         public static ModelManager = CustomModelManager
       }
 

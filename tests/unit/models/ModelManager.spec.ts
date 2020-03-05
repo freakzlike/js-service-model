@@ -14,14 +14,12 @@ describe('models/ModelManager', () => {
   }
 
   class TestModel extends BaseTestModel {
-    public static keyName = 'TestModel'
     protected static urls = {
       BASE: BASE_URL
     }
   }
 
   class ParentTestModel extends BaseTestModel {
-    public static keyName = 'ParentTestModel'
     protected static parents = ['parent1', 'parent2']
     protected static urls = {
       BASE: PARENT_BASE_URL
@@ -31,7 +29,6 @@ describe('models/ModelManager', () => {
   const CACHED_TEST_MODEL_URL = '/parent/{parent}/model/'
 
   class CachedTestModel extends ServiceModel {
-    public static keyName = 'CachedTestModel'
     protected static parents = ['parent']
     protected static cacheDuration = null
     protected static urls = {

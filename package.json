@@ -15,13 +15,13 @@
     "request",
     "cache"
   ],
-  "homepage": "https://freakzlike.github.io/vue-service-model/",
+  "homepage": "https://freakzlike.github.io/js-service-model/",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/freakzlike/vue-service-model.git"
+    "url": "git+https://github.com/freakzlike/js-service-model.git"
   },
   "bugs": {
-    "url": "https://github.com/freakzlike/vue-service-model/issues"
+    "url": "https://github.com/freakzlike/js-service-model/issues"
   },
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -39,7 +39,8 @@
     "fullcheck": "npm run lint && npm run test:unit && npm run test:buildlib"
   },
   "dependencies": {
-    "axios": "^0.19.2"
+    "axios": "^0.19.2",
+    "tslib": "^1.11.1"
   },
   "devDependencies": {
     "@types/jest": "^25.1.3",

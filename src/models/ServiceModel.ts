@@ -39,10 +39,8 @@ class ServiceModel extends BaseModel {
    */
   protected static cacheDuration: number | null = 30
 
-  private static __store: ServiceStore | undefined
-
   /**
-   * Vuex store module factory to use
+   * Cache store class to use
    */
   protected static storeClass: typeof ServiceStore = ServiceStore
 
@@ -52,18 +50,20 @@ class ServiceModel extends BaseModel {
   private static __modelManager: any
 
   /**
-   * Getter to simulate static class property with fixed inheritance
+   * Saved instance of ServiceStore cache
    */
-  public static get store (): ServiceStore | undefined {
-    // Check whether model has property __modelRegistered and not inherited from super class
-    return Object.prototype.hasOwnProperty.call(this, '__store') ? this.__store : undefined
-  }
+  private static __store: ServiceStore
 
   /**
-   * Setter to simulate static class property with fixed inheritance
+   * Getter to simulate static class property with fixed inheritance
    */
-  public static set store (v: ServiceStore | undefined) {
-    this.__store = v
+  public static get store (): ServiceStore {
+    // Check whether model has property __modelRegistered and not inherited from super class
+    if (!Object.prototype.hasOwnProperty.call(this, '__store')) {
+      this.__store = this.createStoreModule()
+    }
+
+    return this.__store
   }
 
   /**
@@ -155,48 +155,7 @@ class ServiceModel extends BaseModel {
   }
 
   /**
-   * Return name of vuex store
-   */
-  public static get storeName (): string {
-    if (!this.keyName) {
-      console.warn('Missing keyName for Model', this.name)
-    }
-    const keyName = this.keyName || this.name
-    return 'service/' + keyName
-  }
-
-  /**
-   * Dispatch vuex store action
-   * @param action
-   * @param payload
-   */
-  public static storeDispatch (action: string, payload?: any): Promise<any> {
-    this.register()
-
-    if (!this.store) throw new Error('123')
-
-    switch (action) {
-      case 'getData':
-        return this.store.getData(payload)
-      case 'loadData':
-        return this.store.loadData(payload)
-      default:
-        throw new Error('Invalid action for storeDispatch')
-    }
-  }
-
-  /**
-   * Register model and vuex store
-   */
-  public static register (): boolean {
-    if (!super.register()) return false
-
-    this.store = this.createStoreModule()
-    return true
-  }
-
-  /**
-   * Create vuex store module from storeFactory
+   * Create instance of store class
    */
   protected static createStoreModule (): ServiceStore {
     const ServiceStoreClass = this.storeClass

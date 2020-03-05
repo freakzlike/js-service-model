@@ -34,7 +34,7 @@ class ModelManager {
       args: [url, pk, params]
     }
 
-    const data: Dictionary<any> = await Model.storeDispatch('getData', options)
+    const data: Dictionary<any> = await Model.store.getData(options)
     return new Model(data)
   }
 
@@ -61,7 +61,7 @@ class ModelManager {
       args: [url, params]
     }
 
-    const dataList: Array<ResponseData> = await Model.storeDispatch('getData', options)
+    const dataList: Array<ResponseData> = await Model.store.getData(options)
     return dataList.map(data => new Model(data))
   }
 

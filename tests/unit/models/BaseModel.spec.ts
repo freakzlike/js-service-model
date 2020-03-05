@@ -7,7 +7,6 @@ describe('models/BaseModel', () => {
       const spy = jest.spyOn(console, 'warn').mockImplementation()
 
       class TestModel extends BaseModel {
-        public static keyName = 'TestModel'
       }
 
       const data = { a: 1 }
@@ -24,7 +23,6 @@ describe('models/BaseModel', () => {
       const spy = jest.spyOn(console, 'warn').mockImplementation()
 
       class TestModel extends BaseModel {
-        public static keyName = 'TestModel'
       }
 
       const model = new TestModel()
@@ -36,24 +34,6 @@ describe('models/BaseModel', () => {
       spy.mockRestore()
     })
 
-    it('should create BaseModel with warning for missing settings', () => {
-      const spy = jest.spyOn(console, 'warn').mockImplementation()
-
-      class TestModel extends BaseModel {
-      }
-
-      const data = { a: 1 }
-      const model = new TestModel(data)
-      expect(model).toBeInstanceOf(BaseModel)
-
-      expect(console.warn).toHaveBeenCalledTimes(1)
-      expect(spy.mock.calls).toEqual([
-        ['Missing keyName for Model', 'TestModel']
-      ])
-
-      spy.mockRestore()
-    })
-
     it('should create BaseModel and bind fields', () => {
       const testField = new Field()
       expect(() => testField.name).toThrow(FieldNotBoundException)
@@ -62,7 +42,6 @@ describe('models/BaseModel', () => {
       }
 
       class TestModel extends BaseModel {
-        public static keyName = 'TestModel'
         protected static fieldsDef = {
           name: testField,
           description: testField,
@@ -95,15 +74,12 @@ describe('models/BaseModel', () => {
   describe('register', () => {
     it('should register only once', () => {
       class TestModel extends BaseModel {
-        public static keyName = 'TestModel'
       }
 
       class OtherTestModel extends BaseModel {
-        public static keyName = 'OtherTestModel'
       }
 
       class NestedTestModel extends TestModel {
-        public static keyName = 'NestedTestModel'
       }
 
       expect(TestModel.register()).toBe(true)
@@ -125,7 +101,6 @@ describe('models/BaseModel', () => {
       }
 
       class TestModel extends BaseModel {
-        public static keyName = 'TestModel'
         protected static fieldsDef = {
           name: new Field(),
           obj: new Field(),
@@ -146,7 +121,6 @@ describe('models/BaseModel', () => {
     }
 
     class TestModel extends BaseModel {
-      public static keyName = 'TestModel'
       protected static fieldsDef = {
         name: new NameField()
       }

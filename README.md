@@ -1,4 +1,4 @@
-# Js service model
+# Javascript Service Model
 
 [![Build](https://github.com/freakzlike/js-service-model/workflows/Build/badge.svg)](https://github.com/freakzlike/js-service-model/actions)
 [![Latest Version](https://img.shields.io/npm/v/js-service-model.svg)](https://www.npmjs.com/package/js-service-model)
@@ -57,9 +57,6 @@ Definition of a simple `ServiceModel` without using fields. https://jsonplacehol
 import {ServiceModel} from 'js-service-model'
 
 class Album extends ServiceModel {
-  // Unique name to handle caching
-  static keyName = 'Album'
-
   // Define service url
   static urls = {
     BASE: 'https://jsonplaceholder.typicode.com/albums/'
@@ -95,9 +92,6 @@ A `BaseModel` can be used to handle data from any source by passing the data whe
 import {BaseModel, fields} from 'js-service-model'
 
 class MyModel extends BaseModel {
-  // Unique name
-  static keyName = 'MyModel'
-    
   // Definition of model fields (optional)
   static fieldsDef = {
     title: new fields.Field()
@@ -137,8 +131,6 @@ store to keep track of [aggregation](#aggregation) of running requests and optio
 import {ServiceModel, fields} from 'js-service-model'
 
 class Album extends ServiceModel {
-  static keyName = 'Album'
-
   static urls = {
     BASE: 'https://jsonplaceholder.typicode.com/albums/'
   }
@@ -270,7 +262,6 @@ this request will be attached to the first request which has not been completed 
 
 With the static property `cacheDuration` it is possible to set the duration (in seconds) of how long the result of a response 
 should be cached. The default value is 30 seconds. Currently the expired data will only be removed by requesting the same data again.
-The `keyName` of your model will be used to access the specific cache so keep them unqiue to avoid having models using the same cache.
 
 * null: cache will not be removed
 * 0: no caching
