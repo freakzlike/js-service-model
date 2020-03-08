@@ -1,10 +1,11 @@
 import Dictionary from '../Dictionary'
 import { ServiceParent } from '../models/ServiceModel'
+import { AxiosResponse } from 'axios'
 
-type FilterParams = Dictionary<any>
-type ResponseData = Dictionary<any>
+export type FilterParams = Dictionary<any>
+export type ResponseData = Dictionary<any>
 
-interface RetrieveInterfaceParams {
+export interface RetrieveInterfaceParams {
   /**
    * Service parents to handle nested RESTful services
    */
@@ -15,8 +16,5 @@ interface RetrieveInterfaceParams {
   filter?: FilterParams
 }
 
-export {
-  FilterParams,
-  ResponseData,
-  RetrieveInterfaceParams
+export interface Response extends AxiosResponse {
 }

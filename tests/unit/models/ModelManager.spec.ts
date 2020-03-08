@@ -2,6 +2,14 @@ import cu from '@/utils/common'
 import axios from 'axios'
 import { ServiceModel, ServiceParent } from '@/models/ServiceModel'
 import Dictionary from '@/types/Dictionary'
+import {
+  APIException,
+  BadRequestAPIException,
+  UnauthorizedAPIException,
+  ForbiddenAPIException,
+  NotFoundAPIException,
+  InternalServerErrorAPIException
+} from '@/exceptions/APIExceptions'
 
 jest.mock('axios')
 
@@ -37,11 +45,13 @@ describe('models/ModelManager', () => {
   }
 
   const withMockedAxios = async (
-    responseData: Dictionary<any> | Array<Dictionary<any>>,
+    response: Dictionary<any> | Array<Dictionary<any>> | null,
     callback: (mockedAxios: jest.Mocked<typeof axios>) => void
   ) => {
     const mockedAxios = axios as jest.Mocked<typeof axios>
-    mockedAxios.get.mockResolvedValue({ data: responseData })
+    if (response) {
+      mockedAxios.get.mockResolvedValue({ data: response })
+    }
 
     try {
       await callback(mockedAxios)
@@ -197,6 +207,19 @@ describe('models/ModelManager', () => {
         mockMapListResponseBeforeCache.mockRestore()
       })
     })
+
+    it('should handle error from service', async () => {
+      await withMockedAxios(null, async mockedAxios => {
+        const mockHandleResponseError = jest.spyOn(TestModel.objects, 'handleResponseError')
+        const customError = new Error('Handle error')
+        mockedAxios.get.mockRejectedValue(customError)
+
+        expect.assertions(2)
+        await expect(TestModel.objects.list()).rejects.toBe(customError)
+        expect(mockHandleResponseError).toBeCalledTimes(1)
+        mockHandleResponseError.mockRestore()
+      })
+    })
   })
 
   /**
@@ -284,6 +307,56 @@ describe('models/ModelManager', () => {
         mockSendDetailRequest.mockRestore()
         mockMapDetailResponseBeforeCache.mockRestore()
       })
+    })
+
+    it('should handle error from service', async () => {
+      await withMockedAxios(null, async mockedAxios => {
+        const mockHandleResponseError = jest.spyOn(TestModel.objects, 'handleResponseError')
+        const customError = new Error('Handle error')
+        mockedAxios.get.mockRejectedValue(customError)
+
+        expect.assertions(2)
+        await expect(TestModel.objects.detail(1)).rejects.toBe(customError)
+        expect(mockHandleResponseError).toBeCalledTimes(1)
+        mockHandleResponseError.mockRestore()
+      })
+    })
+  })
+
+  /**
+   * handleResponseError
+   */
+  describe('handleResponseError', () => {
+    const handleResponseError = async (status: number) => {
+      return TestModel.objects.handleResponseError({ response: { status } })
+    }
+    it('should return BadRequestAPIException', async () => {
+      expect(await handleResponseError(400)).toBeInstanceOf(BadRequestAPIException)
+    })
+
+    it('should return UnauthorizedAPIException', async () => {
+      expect(await handleResponseError(401)).toBeInstanceOf(UnauthorizedAPIException)
+    })
+
+    it('should return ForbiddenAPIException', async () => {
+      expect(await handleResponseError(403)).toBeInstanceOf(ForbiddenAPIException)
+    })
+
+    it('should return NotFoundAPIException', async () => {
+      expect(await handleResponseError(404)).toBeInstanceOf(NotFoundAPIException)
+    })
+
+    it('should return InternalServerErrorAPIException', async () => {
+      expect(await handleResponseError(500)).toBeInstanceOf(InternalServerErrorAPIException)
+    })
+
+    it('should return APIException', async () => {
+      expect(await handleResponseError(0)).toBeInstanceOf(APIException)
+    })
+
+    it('should return other error', async () => {
+      const customError = new Error('Custom error')
+      expect(await TestModel.objects.handleResponseError(customError)).toBe(customError)
     })
   })
 })

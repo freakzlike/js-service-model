@@ -221,6 +221,40 @@ Full structure example:
 }
 ```
 
+##### Exceptions
+
+Error codes from response (e.g. 401 - Unauthorized) will be mapped to an `APIException`. You can catch a specific error by checking with `instanceof` for your required exception.
+
+```js
+import {APIException, UnauthorizedAPIException} from 'js-service-model/lib/exceptions/APIExceptions'
+
+[...]
+
+try {
+  albums = await Album.objects.list()
+} catch (error) {
+  if (error instanceof UnauthorizedAPIException) {
+    // Unauthorized
+  } else if (error instanceof APIException) {
+    // Any other HTTP error status code
+  } else {
+    // Other exceptions
+    throw error  
+  }
+}
+```
+
+All API exceptions inherit from `APIException` and contain the response as property (`error.response`).
+
+HTTP status code | Exception
+---------------- | ------------
+400 - Bad Request | `BadRequestAPIException`
+401 - Unauthorized | `UnauthorizedAPIException`
+403 - Forbidden | `ForbiddenAPIException`
+404 - Not Found | `NotFoundAPIException`
+500 - Internal Server Error | `InternalServerErrorAPIException`
+Other | `APIException`
+
 ##### Custom ModelManager
   
 You can extend the `ModelManager` and add your own methods.
@@ -251,6 +285,8 @@ It is also possible to overwrite some methods to do the `list`/`detail` request 
   * Gets called from `sendListRequest` with the response data before the data will be cached
 * `mapDetailResponseBeforeCache`
   * Gets called from `sendDetailRequest` with the response data before the data will be cached
+* `handleResponseError`
+  * Receives Errors from `axios` and maps it to api exceptions
 
 #### Aggregation
 
@@ -424,7 +460,6 @@ Different field types will be added with future releases.
   * Methods to allow generation of input/display components according to field type
   * Accessing foreign key fields and retrieving foreign model instances
 * Global configuration with hooks
-* Error handling
 * ...
 
 ## Contribution

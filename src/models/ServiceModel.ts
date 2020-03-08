@@ -3,16 +3,7 @@ import { ModelManager } from './ModelManager'
 import cu from '../utils/common'
 import { ServiceStore } from '../store/ServiceStore'
 import { ServiceParent } from '../types/models/ServiceModel'
-
-class MissingUrlException extends Error {
-  constructor (modelName: string) {
-    super('Missing url configuration in Model "' + modelName + '"')
-    this.constructor = MissingUrlException
-    // @ts-ignore
-    // eslint-disable-next-line no-proto
-    this.__proto__ = MissingUrlException.prototype
-  }
-}
+import { MissingUrlException } from '../exceptions/ModelExceptions'
 
 /**
  * ServiceModel
