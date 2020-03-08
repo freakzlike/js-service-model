@@ -31,6 +31,7 @@ Core library for handling REST service requests with caching, aggregation and mo
       * [Retrieve list of data (`objects.list()`)](#retrieve-list-of-data-objectslist)
       * [Retrieve single entry of data (`objects.detail()`)](#retrieve-single-entry-of-data-objectsdetail)
       * [RetrieveInterfaceParams](#retrieveinterfaceparams)
+      * [Exceptions](#exceptions)
       * [Custom ModelManager](#custom-modelmanager)
     * [Aggregation](#aggregation)
     * [Cache](#cache)

@@ -87,20 +87,24 @@ class ServiceStore {
 
     // Actual request and save result in cache
     const request = options.sendRequest(options, ...(options.args || [])).then(data => {
-      this._setData({ data, key })
+      this._setData(key, data)
 
       return data
+    }, error => {
+      this.removeRequest(key)
+      throw error
     })
 
-    this._setRequest({ request, key })
+    this._setRequest(key, request)
     return request
   }
 
   /**
    * Save data in cache if required
-   * @param {data, key}
+   * @param key
+   * @param data
    */
-  protected _setData ({ data, key }: { data: Dictionary<any>; key: string }) {
+  protected _setData (key: string, data: Dictionary<any>) {
     if (this.cacheDuration !== 0) {
       const _data: ServiceStoreStateData = { data }
 
@@ -111,15 +115,24 @@ class ServiceStore {
       this._data[key] = _data
     }
 
-    delete this._requests[key]
+    this.removeRequest(key)
   }
 
   /**
    * Save started request promise
-   * @param {request, key}
+   * @param key
+   * @param request
    */
-  protected _setRequest ({ request, key }: { request: Promise<any>; key: string }) {
+  protected _setRequest (key: string, request: Promise<any>) {
     this._requests[key] = request
+  }
+
+  /**
+   * Remove request promise
+   * @param key
+   */
+  public removeRequest (key: string) {
+    delete this._requests[key]
   }
 
   /**
