@@ -158,7 +158,7 @@ describe('models/BaseModel', () => {
       expect(serviceStore.testGetCachedRequests).not.toHaveProperty(options.key)
 
       spySendRequest.mockRestore()
-})
+    })
   })
 
   describe('clean', () => {
