@@ -1,6 +1,7 @@
-import { Field, FieldNotBoundException } from '@/fields/Field'
-import { BaseModel } from '@/models'
+import { Field } from '@/fields/Field'
+import { BaseModel } from '@/models/BaseModel'
 import { FieldDef, FieldBind } from '@/types/fields/Field'
+import { FieldNotBoundException } from '@/exceptions/FieldExceptions'
 
 describe('fields/Field', () => {
   class TestModel extends BaseModel {

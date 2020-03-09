@@ -1,6 +1,6 @@
 import { Field } from '../fields'
 
-class FieldNotBoundException extends Error {
+export class FieldNotBoundException extends Error {
   constructor (field: Field) {
     super('Field "' + field.cls.name + '" not bound or fieldName not set on new')
     this.constructor = FieldNotBoundException
@@ -9,5 +9,3 @@ class FieldNotBoundException extends Error {
     this.__proto__ = FieldNotBoundException.prototype
   }
 }
-
-export { FieldNotBoundException }

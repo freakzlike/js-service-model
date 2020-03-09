@@ -1,8 +1,8 @@
 import Dictionary from '../types/Dictionary'
 import { ServiceModel } from './ServiceModel'
-import { ServiceStoreOptions } from '../store/ServiceStore'
+import { ServiceStoreOptions } from '../types/store/ServiceStore'
 import axios, { AxiosRequestConfig } from 'axios'
-import { FilterParams, ResponseData, RetrieveInterfaceParams } from '../types/models/ModelManager'
+import { ResponseData, RetrieveInterfaceParams } from '../types/models/ModelManager'
 import {
   APIException,
   BadRequestAPIException,
@@ -16,7 +16,7 @@ import {
  * ModelManager
  * Provides interface for model to retrieve data from backend api
  */
-class ModelManager {
+export class ModelManager {
   public model: typeof ServiceModel
 
   constructor (model: typeof ServiceModel) {
@@ -192,5 +192,3 @@ class ModelManager {
     }
   }
 }
-
-export { ModelManager, FilterParams, ResponseData }

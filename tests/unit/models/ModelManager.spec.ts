@@ -1,6 +1,7 @@
 import cu from '@/utils/common'
 import axios from 'axios'
-import { ServiceModel, ServiceParent } from '@/models/ServiceModel'
+import { ServiceModel } from '@/models/ServiceModel'
+import { ServiceParent } from '@/types/models/ServiceModel'
 import Dictionary from '@/types/Dictionary'
 import {
   APIException,

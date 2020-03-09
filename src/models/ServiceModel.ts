@@ -9,7 +9,7 @@ import { MissingUrlException } from '../exceptions/ModelExceptions'
  * ServiceModel
  * Model with service interface to retrieve data from backend api
  */
-class ServiceModel extends BaseModel {
+export class ServiceModel extends BaseModel {
   /**
    * Default URL definition for backend APIs
    * Fill either LIST/DETAIL or BASE url or use other urls by overwriting getListUrl/getDetailUrl
@@ -153,5 +153,3 @@ class ServiceModel extends BaseModel {
     return new ServiceStoreClass(this.cacheDuration)
   }
 }
-
-export { ServiceModel, ServiceParent, MissingUrlException }

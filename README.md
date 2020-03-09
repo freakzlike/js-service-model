@@ -90,12 +90,12 @@ album.data
 A `BaseModel` can be used to handle data from any source by passing the data when instantiating the model.
 
 ```js
-import {BaseModel, fields} from 'js-service-model'
+import {BaseModel, Field} from 'js-service-model'
 
 class MyModel extends BaseModel {
   // Definition of model fields (optional)
   static fieldsDef = {
-    title: new fields.Field()
+    title: new Field()
   }
 }
 
@@ -129,7 +129,7 @@ A `ServiceModel` extends from [`BaseModel`](#basemodel) and adds the [`ModelMana
 store to keep track of [aggregation](#aggregation) of running requests and optionally caching the result of the services.
 
 ```js
-import {ServiceModel, fields} from 'js-service-model'
+import {ServiceModel, Field} from 'js-service-model'
 
 class Album extends ServiceModel {
   static urls = {
@@ -140,8 +140,8 @@ class Album extends ServiceModel {
   static cacheDuration = 5
 
   static fieldsDef = {
-    id: new fields.Field(),
-    title: new fields.Field()
+    id: new Field(),
+    title: new Field()
   }
 }
 ```
@@ -227,7 +227,7 @@ Full structure example:
 Error codes from response (e.g. 401 - Unauthorized) will be mapped to an `APIException`. You can catch a specific error by checking with `instanceof` for your required exception.
 
 ```js
-import {APIException, UnauthorizedAPIException} from 'js-service-model/lib/exceptions/APIExceptions'
+import {APIException, UnauthorizedAPIException} from 'js-service-model'
 
 [...]
 
@@ -343,8 +343,8 @@ class MyModel extends BaseModel {
   [...]
 
   static fieldsDef = {
-    first_name: new fields.Field(),
-    last_name: new fields.Field()
+    first_name: new Field(),
+    last_name: new Field()
   }
 }
 
@@ -368,9 +368,9 @@ class MyModel extends BaseModel {
   [...]
 
   static fieldsDef = {
-    name: new fields.Field({attributeName: 'username'}),
-    address_city: new fields.Field({attributeName: 'address.city'}),
-    address_street: new fields.Field({attributeName: 'address.street.name'})
+    name: new Field({attributeName: 'username'}),
+    address_city: new Field({attributeName: 'address.city'}),
+    address_street: new Field({attributeName: 'address.street.name'})
   }
 }
 
@@ -399,7 +399,7 @@ class MyModel extends BaseModel {
   [...]
 
   static fieldsDef = {
-    first_name: new fields.Field({
+    first_name: new Field({
       label: 'First name',
       hint: () => 'First name of the employee'
     })
@@ -416,10 +416,10 @@ await firstNameField.hint // output: First name of the employee
 
 #### Custom/Computed fields
 
-In case you want to define your own field class you just need to extend from `fields.Field`. By overwriting the `valueGetter` method you are able to map the field value by yourself and create computed values.
+In case you want to define your own field class you just need to extend from `Field`. By overwriting the `valueGetter` method you are able to map the field value by yourself and create computed values.
 
 ```js
-class FullNameField extends fields.Field {
+class FullNameField extends Field {
   valueGetter (data) {
     return data ? data.first_name + ' ' + data.last_name : null
   }

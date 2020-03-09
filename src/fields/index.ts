@@ -1,7 +1,7 @@
-import { Field, FieldNotBoundException } from './Field'
+import { Field } from './Field'
 import { CharField } from './CharField'
 
-export { Field, FieldNotBoundException }
+export { Field }
 export { CharField }
 
 export default {

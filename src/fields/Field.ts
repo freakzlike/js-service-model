@@ -4,7 +4,7 @@ import { FieldNotBoundException } from '../exceptions/FieldExceptions'
 import { FieldDef, FieldBind } from '../types/fields/Field'
 import { BaseModel } from '../models'
 
-class Field extends BaseClass {
+export class Field extends BaseClass {
   /**
    * Field name
    */
@@ -138,9 +138,4 @@ class Field extends BaseClass {
       return null
     }
   }
-}
-
-export {
-  FieldNotBoundException,
-  Field
 }

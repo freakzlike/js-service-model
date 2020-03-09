@@ -1,6 +1,6 @@
 import { BaseModel } from '../models'
 
-class NotDeclaredFieldException extends Error {
+export class NotDeclaredFieldException extends Error {
   constructor (model: BaseModel, fieldName: string) {
     super('Field "' + fieldName + '" not declared on Model "' + model.cls.name + '"')
     this.constructor = NotDeclaredFieldException
@@ -10,7 +10,7 @@ class NotDeclaredFieldException extends Error {
   }
 }
 
-class MissingUrlException extends Error {
+export class MissingUrlException extends Error {
   constructor (modelName: string) {
     super('Missing url configuration in Model "' + modelName + '"')
     this.constructor = MissingUrlException
@@ -19,5 +19,3 @@ class MissingUrlException extends Error {
     this.__proto__ = MissingUrlException.prototype
   }
 }
-
-export { NotDeclaredFieldException, MissingUrlException }

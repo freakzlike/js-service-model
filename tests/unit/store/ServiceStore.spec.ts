@@ -1,4 +1,5 @@
-import { ServiceStore, ServiceStoreOptions } from '@/store/ServiceStore'
+import { ServiceStore } from '@/store/ServiceStore'
+import { ServiceStoreOptions } from '@/types/store/ServiceStore'
 
 describe('models/BaseModel', () => {
   class TestServiceStore extends ServiceStore {

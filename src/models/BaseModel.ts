@@ -6,7 +6,7 @@ import { NotDeclaredFieldException } from '../exceptions/ModelExceptions'
 /**
  * BaseModel class
  */
-class BaseModel extends BaseClass {
+export class BaseModel extends BaseClass {
   /**
    * Field definitions for current model
    * e.g:
@@ -119,5 +119,3 @@ class BaseModel extends BaseClass {
     return true
   }
 }
-
-export { BaseModel, NotDeclaredFieldException }
