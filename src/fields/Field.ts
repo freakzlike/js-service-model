@@ -1,7 +1,8 @@
 import cu from '../utils/common'
 import { BaseClass } from '../utils/BaseClass'
-import { FieldDef } from './FieldDef'
 import { FieldNotBoundException } from '../exceptions/FieldExceptions'
+import { FieldDef, FieldBind } from '../types/fields/Field'
+import { BaseModel } from '../models'
 
 class Field extends BaseClass {
   /**
@@ -14,24 +15,47 @@ class Field extends BaseClass {
    */
   protected _def: FieldDef
 
-  constructor (def: FieldDef = {}, fieldName: (string | null) = null) {
+  /**
+   * Model instance
+   */
+  protected _model: BaseModel | null = null
+
+  constructor (def: FieldDef = {}, fieldBind?: FieldBind) {
     super()
     this._def = def
-    this._name = fieldName
+    if (fieldBind) {
+      this._name = fieldBind.name
+      this._model = fieldBind.model || null
+    }
   }
 
+  /**
+   * Clone field instance
+   */
   public clone (): Field {
     const FieldClass = this.cls as typeof Field
-    return new FieldClass(this._def, this._name)
+
+    if (this._name) {
+      const fieldBind: FieldBind = {
+        name: this._name
+      }
+      if (this._model) {
+        fieldBind.model = this._model
+      }
+
+      return new FieldClass(this._def, fieldBind)
+    } else {
+      return new FieldClass(this._def)
+    }
   }
 
   /**
    * Bind field with field name and return a new instance
-   * @param fieldName
+   * @param fieldBind
    */
-  public bind (fieldName: string): Field {
+  public bind (fieldBind: FieldBind): Field {
     const FieldClass = this.cls as typeof Field
-    return new FieldClass(this._def, fieldName)
+    return new FieldClass(this._def, fieldBind)
   }
 
   /**
@@ -47,7 +71,6 @@ class Field extends BaseClass {
 
   /**
    * Name of attribute in data
-   * @returns {String}
    */
   public get attributeName (): string {
     return this._def.attributeName || this.name
@@ -58,6 +81,17 @@ class Field extends BaseClass {
    */
   public get definition (): FieldDef {
     return this._def
+  }
+
+  /**
+   * Assigned model
+   */
+  public get model (): BaseModel {
+    if (this._model === null) {
+      throw new FieldNotBoundException(this)
+    }
+
+    return this._model
   }
 
   /**

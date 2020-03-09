@@ -104,7 +104,8 @@ class BaseModel extends BaseClass {
 
     const fields = this.cls.fieldsDef
     for (const fieldName of Object.keys(fields)) {
-      this._fields[fieldName] = fields[fieldName].bind(fieldName)
+      const field = fields[fieldName] as Field
+      this._fields[fieldName] = field.bind({ name: fieldName, model: this })
     }
   }
 

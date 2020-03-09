@@ -1,7 +1,13 @@
 import { Field, FieldNotBoundException } from '@/fields/Field'
-import { FieldDef } from '@/fields/FieldDef'
+import { BaseModel } from '@/models'
+import { FieldDef, FieldBind } from '@/types/fields/Field'
 
 describe('fields/Field', () => {
+  class TestModel extends BaseModel {
+  }
+
+  const model = new TestModel()
+
   describe('constructor', () => {
     it('should create correct Field without field name', () => {
       const def = {}
@@ -13,24 +19,27 @@ describe('fields/Field', () => {
 
     it('should create correct Field with field name', () => {
       const def = {}
-      const field = new Field(def, 'name')
+      const field = new Field(def, { name: 'name', model })
       expect(field).toBeInstanceOf(Field)
       expect(field.definition).toBe(def)
       expect(field.name).toBe('name')
+      expect(field.model).toBe(model)
     })
   })
 
   describe('clone', () => {
-    it('should clone field instance with name', () => {
-      const field = new Field({}, 'name')
+    it('should clone field instance with bind', () => {
+      const fieldBind: FieldBind = { name: 'name', model }
+      const field = new Field({}, fieldBind)
 
       const cloned = field.clone()
       expect(field).not.toBe(cloned)
       expect(cloned.definition).toBe(cloned.definition)
-      expect(cloned.name).toBe(cloned.name)
+      expect(cloned.name).toBe(fieldBind.name)
+      expect(cloned.model).toBe(fieldBind.model)
     })
 
-    it('should clone field instance without name', () => {
+    it('should clone field instance without bind', () => {
       const field = new Field({})
 
       const cloned = field.clone()
@@ -38,26 +47,40 @@ describe('fields/Field', () => {
       expect(field).not.toBe(cloned)
       expect(field.definition).toBe(cloned.definition)
       expect(() => cloned.name).toThrow(FieldNotBoundException)
+      expect(() => cloned.model).toThrow(FieldNotBoundException)
+    })
+
+    it('should clone field instance without model', () => {
+      const fieldBind: FieldBind = { name: 'name' }
+      const field = new Field({}, fieldBind)
+
+      const cloned = field.clone()
+      expect(cloned).toBeInstanceOf(Field)
+      expect(field).not.toBe(cloned)
+      expect(field.definition).toBe(cloned.definition)
+      expect(cloned.name).toBe(fieldBind.name)
+      expect(() => cloned.model).toThrow(FieldNotBoundException)
     })
   })
 
   describe('bind', () => {
-    it('should bind field name to field and return new instance', () => {
+    it('should bind field and return new instance', () => {
       const field = new Field({})
       const fieldName = 'name'
 
-      const bound = field.bind(fieldName)
+      const bound = field.bind({ name: fieldName, model })
       expect(bound).toBeInstanceOf(Field)
       expect(field).not.toBe(bound)
       expect(field.definition).toBe(bound.definition)
       expect(bound.name).toBe(fieldName)
+      expect(bound.model).toBe(model)
     })
   })
 
   describe('name', () => {
     it('should return field name', () => {
       const fieldName = 'description'
-      const field = new Field({}, fieldName)
+      const field = new Field({}, { name: fieldName, model })
       expect(field.name).toBe(fieldName)
     })
 
@@ -77,7 +100,7 @@ describe('fields/Field', () => {
 
     it('should get default attributeName', () => {
       const fieldName = 'description'
-      const field = new Field({}, fieldName)
+      const field = new Field({}, { name: fieldName })
       expect(field.attributeName).toBe(fieldName)
     })
 
@@ -92,6 +115,18 @@ describe('fields/Field', () => {
       const def = { attributeName: 'attr' }
       const field = new Field(def)
       expect(field.definition).toBe(def)
+    })
+  })
+
+  describe('model', () => {
+    it('should return field model', () => {
+      const field = new Field({}, { name: 'description', model })
+      expect(field.model).toBe(model)
+    })
+
+    it('should throw FieldNotBoundException', () => {
+      const field = new Field()
+      expect(() => field.model).toThrow(FieldNotBoundException)
     })
   })
 
@@ -169,7 +204,7 @@ describe('fields/Field', () => {
 
   describe('valueGetter', () => {
     it('should return null data', () => {
-      const field = new Field({}, 'field')
+      const field = new Field({}, { name: 'field' })
       expect(field.valueGetter(false)).toBe(null)
       expect(field.valueGetter(null)).toBe(null)
       expect(field.valueGetter(5)).toBe(null)
@@ -178,7 +213,7 @@ describe('fields/Field', () => {
     })
 
     it('should return null nested data', () => {
-      const field = new Field({}, 'struct.dir.field')
+      const field = new Field({}, { name: 'struct.dir.field' })
       expect(field.valueGetter(null)).toBe(null)
       expect(field.valueGetter({})).toBe(null)
       expect(field.valueGetter({ field2: 1 })).toBe(null)
@@ -188,7 +223,7 @@ describe('fields/Field', () => {
     })
 
     it('should return value', () => {
-      const field = new Field({}, 'field')
+      const field = new Field({}, { name: 'field' })
       expect(field.valueGetter({ field: null })).toBe(null)
       expect(field.valueGetter({ field: false })).toBe(false)
       expect(field.valueGetter({ field: 1 })).toBe(1)
@@ -200,7 +235,7 @@ describe('fields/Field', () => {
     })
 
     it('should return value nested data', () => {
-      const field = new Field({}, 'struct.dir.field')
+      const field = new Field({}, { name: 'struct.dir.field' })
       expect(field.valueGetter({ struct: { dir: { field: null } } })).toBe(null)
       expect(field.valueGetter({ struct: { dir: { field: false } } })).toBe(false)
       expect(field.valueGetter({ struct: { dir: { field: 'string' } } })).toBe('string')
