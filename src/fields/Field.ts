@@ -95,6 +95,13 @@ export class Field extends BaseClass {
   }
 
   /**
+   * Field value
+   */
+  public get value (): any {
+    return this.valueGetter(this.model.data)
+  }
+
+  /**
    * Field label
    */
   public get label (): Promise<string> {

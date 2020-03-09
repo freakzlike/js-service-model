@@ -78,8 +78,8 @@ export class BaseModel extends BaseClass {
   public get val (): Dictionary<any> {
     return new Proxy(this, {
       get (target: BaseModel, name: string) {
-        const field = target.getField(name)
-        return field.valueGetter(target.data)
+        const field: Field = target.getField(name)
+        return field.value
       }
     })
   }

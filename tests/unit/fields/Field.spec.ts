@@ -131,6 +131,26 @@ describe('fields/Field', () => {
     })
   })
 
+  describe('value', () => {
+    it('should return field value', () => {
+      const data = { description: 'desc value' }
+      const model = new TestModel(data)
+
+      const field = new Field({}, { name: 'description', model })
+      const mockValueGetter = jest.spyOn(field, 'valueGetter')
+
+      expect(field.value).toBe(data.description)
+
+      expect(mockValueGetter).toBeCalledTimes(1)
+      expect(mockValueGetter.mock.calls[0]).toEqual([data])
+    })
+
+    it('should throw FieldNotBoundException', () => {
+      const field = new Field()
+      expect(() => field.value).toThrow(FieldNotBoundException)
+    })
+  })
+
   describe('label', () => {
     it('should get label string', async () => {
       const def: FieldDef = { label: 'field label' }
