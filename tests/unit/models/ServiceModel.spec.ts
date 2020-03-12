@@ -1,4 +1,6 @@
-import { ServiceModel, MissingUrlException, ServiceParent } from '@/models/ServiceModel'
+import { ServiceModel } from '@/models/ServiceModel'
+import { ServiceParent } from '@/types/models/ServiceModel'
+import { MissingUrlException } from '@/exceptions/ModelExceptions'
 
 describe('models/ServiceModel', () => {
   describe('getListUrl', () => {

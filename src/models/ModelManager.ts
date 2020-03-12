@@ -1,14 +1,22 @@
 import Dictionary from '../types/Dictionary'
 import { ServiceModel } from './ServiceModel'
-import { ServiceStoreOptions } from '../store/ServiceStore'
+import { ServiceStoreOptions } from '../types/store/ServiceStore'
 import axios, { AxiosRequestConfig } from 'axios'
-import { FilterParams, ResponseData, RetrieveInterfaceParams } from '../types/models/ModelManager'
+import { ResponseData, RetrieveInterfaceParams } from '../types/models/ModelManager'
+import {
+  APIException,
+  BadRequestAPIException,
+  UnauthorizedAPIException,
+  ForbiddenAPIException,
+  NotFoundAPIException,
+  InternalServerErrorAPIException
+} from '../exceptions/APIExceptions'
 
 /**
  * ModelManager
  * Provides interface for model to retrieve data from backend api
  */
-class ModelManager {
+export class ModelManager {
   public model: typeof ServiceModel
 
   constructor (model: typeof ServiceModel) {
@@ -93,7 +101,12 @@ class ModelManager {
     params?: RetrieveInterfaceParams
   ): Promise<ResponseData> {
     const config = await this.buildRetrieveRequestConfig(params)
-    const response = await axios.get(url, config)
+    let response
+    try {
+      response = await axios.get(url, config)
+    } catch (error) {
+      throw await this.handleResponseError(error)
+    }
 
     return this.mapDetailResponseBeforeCache(options, response.data, url, pk, params)
   }
@@ -128,7 +141,12 @@ class ModelManager {
     params?: RetrieveInterfaceParams
   ): Promise<Array<ResponseData>> {
     const config = await this.buildRetrieveRequestConfig(params)
-    const response = await axios.get(url, config)
+    let response
+    try {
+      response = await axios.get(url, config)
+    } catch (error) {
+      throw await this.handleResponseError(error)
+    }
 
     return this.mapListResponseBeforeCache(options, response.data, url, params)
   }
@@ -148,6 +166,29 @@ class ModelManager {
   ): Promise<Array<ResponseData>> {
     return data
   }
-}
 
-export { ModelManager, FilterParams, ResponseData }
+  /**
+   * Receive error from service and map to api exceptions
+   * @param error
+   */
+  public async handleResponseError (error: any) {
+    if (error.response) {
+      switch (error.response.status) {
+        case BadRequestAPIException.statusCode:
+          return new BadRequestAPIException(error.response)
+        case UnauthorizedAPIException.statusCode:
+          return new UnauthorizedAPIException(error.response)
+        case ForbiddenAPIException.statusCode:
+          return new ForbiddenAPIException(error.response)
+        case NotFoundAPIException.statusCode:
+          return new NotFoundAPIException(error.response)
+        case InternalServerErrorAPIException.statusCode:
+          return new InternalServerErrorAPIException(error.response)
+        default:
+          return new APIException(error.response)
+      }
+    } else {
+      return error
+    }
+  }
+}

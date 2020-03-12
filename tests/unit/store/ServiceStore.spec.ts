@@ -1,4 +1,5 @@
-import { ServiceStore, ServiceStoreOptions } from '@/store/ServiceStore'
+import { ServiceStore } from '@/store/ServiceStore'
+import { ServiceStoreOptions } from '@/types/store/ServiceStore'
 
 describe('models/BaseModel', () => {
   class TestServiceStore extends ServiceStore {
@@ -131,6 +132,33 @@ describe('models/BaseModel', () => {
 
       spySendRequest.mockRestore()
       spyGetTime.mockRestore()
+    })
+
+    it('should throw error and clean cached request', async () => {
+      const serviceStore = new TestServiceStore(null)
+      const customError = new Error('Handle error')
+      const options: ServiceStoreOptions = {
+        key: 'serviceKey',
+        sendRequest: async () => {
+          throw customError
+        },
+        args: [1, 'test']
+      }
+      const spySendRequest = jest.spyOn(options, 'sendRequest')
+
+      await expect(serviceStore.getData(options)).rejects.toBe(customError)
+      expect(spySendRequest).toBeCalledTimes(1)
+
+      expect(serviceStore.testGetCachedData).not.toHaveProperty(options.key)
+      expect(serviceStore.testGetCachedRequests).not.toHaveProperty(options.key)
+
+      await expect(serviceStore.getData(options)).rejects.toBe(customError)
+      expect(spySendRequest).toBeCalledTimes(2)
+
+      expect(serviceStore.testGetCachedData).not.toHaveProperty(options.key)
+      expect(serviceStore.testGetCachedRequests).not.toHaveProperty(options.key)
+
+      spySendRequest.mockRestore()
     })
   })
 

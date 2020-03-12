@@ -1,18 +1,10 @@
 import cu from '../utils/common'
 import { BaseClass } from '../utils/BaseClass'
-import { FieldDef } from './FieldDef'
+import { FieldNotBoundException } from '../exceptions/FieldExceptions'
+import { FieldDef, FieldBind } from '../types/fields/Field'
+import { BaseModel } from '../models'
 
-class FieldNotBoundException extends Error {
-  constructor (field: Field) {
-    super('Field "' + field.cls.name + '" not bound or fieldName not set on new')
-    this.constructor = FieldNotBoundException
-    // @ts-ignore
-    // eslint-disable-next-line no-proto
-    this.__proto__ = FieldNotBoundException.prototype
-  }
-}
-
-class Field extends BaseClass {
+export class Field extends BaseClass {
   /**
    * Field name
    */
@@ -23,24 +15,47 @@ class Field extends BaseClass {
    */
   protected _def: FieldDef
 
-  constructor (def: FieldDef = {}, fieldName: (string | null) = null) {
+  /**
+   * Model instance
+   */
+  protected _model: BaseModel | null = null
+
+  constructor (def: FieldDef = {}, fieldBind?: FieldBind) {
     super()
     this._def = def
-    this._name = fieldName
+    if (fieldBind) {
+      this._name = fieldBind.name
+      this._model = fieldBind.model || null
+    }
   }
 
+  /**
+   * Clone field instance
+   */
   public clone (): Field {
     const FieldClass = this.cls as typeof Field
-    return new FieldClass(this._def, this._name)
+
+    if (this._name) {
+      const fieldBind: FieldBind = {
+        name: this._name
+      }
+      if (this._model) {
+        fieldBind.model = this._model
+      }
+
+      return new FieldClass(this._def, fieldBind)
+    } else {
+      return new FieldClass(this._def)
+    }
   }
 
   /**
    * Bind field with field name and return a new instance
-   * @param fieldName
+   * @param fieldBind
    */
-  public bind (fieldName: string): Field {
+  public bind (fieldBind: FieldBind): Field {
     const FieldClass = this.cls as typeof Field
-    return new FieldClass(this._def, fieldName)
+    return new FieldClass(this._def, fieldBind)
   }
 
   /**
@@ -56,7 +71,6 @@ class Field extends BaseClass {
 
   /**
    * Name of attribute in data
-   * @returns {String}
    */
   public get attributeName (): string {
     return this._def.attributeName || this.name
@@ -67,6 +81,24 @@ class Field extends BaseClass {
    */
   public get definition (): FieldDef {
     return this._def
+  }
+
+  /**
+   * Assigned model
+   */
+  public get model (): BaseModel {
+    if (this._model === null) {
+      throw new FieldNotBoundException(this)
+    }
+
+    return this._model
+  }
+
+  /**
+   * Field value
+   */
+  public get value (): any {
+    return this.valueGetter(this.model.data)
   }
 
   /**
@@ -113,9 +145,4 @@ class Field extends BaseClass {
       return null
     }
   }
-}
-
-export {
-  FieldNotBoundException,
-  Field
 }

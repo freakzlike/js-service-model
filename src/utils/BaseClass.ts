@@ -3,7 +3,7 @@ import Dictionary from '../types/Dictionary'
 /**
  * BaseClass
  */
-class BaseClass {
+export class BaseClass {
   /**
    * Getter to retrieve static class definition
    */
@@ -19,5 +19,3 @@ class BaseClass {
     return this
   }
 }
-
-export { BaseClass }

@@ -27,11 +27,6 @@ Core library for handling REST service requests with caching, aggregation and mo
   * [BaseModel](#basemodel)
   * [ServiceModel](#servicemodel)
     * [Urls](#urls)
-    * [ModelManager (`objects`)](#modelmanager-objects)
-      * [Retrieve list of data (`objects.list()`)](#retrieve-list-of-data-objectslist)
-      * [Retrieve single entry of data (`objects.detail()`)](#retrieve-single-entry-of-data-objectsdetail)
-      * [RetrieveInterfaceParams](#retrieveinterfaceparams)
-      * [Custom ModelManager](#custom-modelmanager)
     * [Aggregation](#aggregation)
     * [Cache](#cache)
     * [Parents](#parents)
@@ -41,6 +36,12 @@ Core library for handling REST service requests with caching, aggregation and mo
       * [Field label and hint (`label`, `hint`)](#field-label-and-hint-label-hint)
     * [Custom/Computed fields](#customcomputed-fields)
     * [Field types](#field-types)
+  * [ModelManager (`objects`)](#modelmanager-objects)
+    * [Retrieve list of data (`objects.list()`)](#retrieve-list-of-data-objectslist)
+    * [Retrieve single entry of data (`objects.detail()`)](#retrieve-single-entry-of-data-objectsdetail)
+    * [RetrieveInterfaceParams](#retrieveinterfaceparams)
+    * [Exceptions](#exceptions)
+    * [Custom ModelManager](#custom-modelmanager)
 * [Future](#future)
 * [Contribution](#contribution)
 * [License](#license)
@@ -89,12 +90,12 @@ album.data
 A `BaseModel` can be used to handle data from any source by passing the data when instantiating the model.
 
 ```js
-import {BaseModel, fields} from 'js-service-model'
+import {BaseModel, Field} from 'js-service-model'
 
 class MyModel extends BaseModel {
   // Definition of model fields (optional)
   static fieldsDef = {
-    title: new fields.Field()
+    title: new Field()
   }
 }
 
@@ -128,7 +129,7 @@ A `ServiceModel` extends from [`BaseModel`](#basemodel) and adds the [`ModelMana
 store to keep track of [aggregation](#aggregation) of running requests and optionally caching the result of the services.
 
 ```js
-import {ServiceModel, fields} from 'js-service-model'
+import {ServiceModel, Field} from 'js-service-model'
 
 class Album extends ServiceModel {
   static urls = {
@@ -139,8 +140,8 @@ class Album extends ServiceModel {
   static cacheDuration = 5
 
   static fieldsDef = {
-    id: new fields.Field(),
-    title: new fields.Field()
+    id: new Field(),
+    title: new Field()
   }
 }
 ```
@@ -149,8 +150,8 @@ class Album extends ServiceModel {
 
 Urls are currently divided into 2 different types. `LIST` and `DETAIL` (same like in [Django REST framework](https://www.django-rest-framework.org/api-guide/routers/#simplerouter)).
 
-* `LIST`: (e.g. `/albums/`) used for `objects.list()`
-* `DETAIL`: (e.g. `/albums/1/`) used for `objects.detail(1)`
+* `LIST`: (e.g. `/albums/`) used for [`objects.list()`](#retrieve-list-of-data-objectslist)
+* `DETAIL`: (e.g. `/albums/1/`) used for [`objects.detail(1)`](#retrieve-single-entry-of-data-objectsdetail)
 
 
 The simplest way to define the urls is to set the static property `urls.BASE` in your `ServiceModel`.
@@ -177,80 +178,7 @@ There are currently 3 ways to define your url with the following priority
 
 If you got a nested RESTful service structure (e.g. `/albums/1/photos/`) have a look at [parents](#parents).
 
-#### ModelManager (`objects`)
 
-The `ModelManager` provides the interface to perform the api requests. At the moment there are 2 default interface methods.
-
-##### Retrieve list of data (`objects.list()`)
-
-`objects.list()` is used to request a list of data (e.g. `/albums/`) and will return a list of model instances.
-You can optionally set [`RetrieveInterfaceParams`](#retrieveinterfaceparams) as only argument.
-The method will use [`getListUrl`](#urls), [`sendListRequest`](#custom-modelmanager) and [`mapListResponseBeforeCache`](#custom-modelmanager) which can be overwritten for customization.
-
-Examples:
-```js
-Album.objects.list() // Request: GET /albums/
-Photo.objects.list({parents: {album: 1}}) // Request: GET /albums/1/photos/
-Album.objects.list({filter: {userId: 1}}) // Request: GET /albums/?userId=1
-```
-
-##### Retrieve single entry of data (`objects.detail()`)
-
-`objects.detail()` is used to request a single entry (e.g. `/albums/1/`) and will return a model instance.
-The first argument is the primary key which can either be a `string` or `number`. You can optionally set [`RetrieveInterfaceParams`](#retrieveinterfaceparams) as second argument.
-The method will use [`getDetailUrl`](#urls), [`sendDetailRequest`](#custom-modelmanager) and [`mapDetailResponseBeforeCache`](#custom-modelmanager) which can be overwritten for customization.
-
-Examples:
-```js
-Album.objects.detail(1) // Request: GET /albums/1/
-Photo.objects.detail(5, {parents: {album: 1}}) // Request: GET /albums/1/photos/5/
-```
-
-##### RetrieveInterfaceParams
-
-With `RetrieveInterfaceParams` you can provide additional parameters for `objects.list()` and `objects.detail()` e.g. for using query parameters or [parents](#parents).
-
-Full structure example:
-```js
-{
-  // Optional service parents to handle nested RESTful services
-  parents: {album: 1},
-
-  // Filter params as plain object which will be converted to query parameters (params in axios)
-  filter: {userId: 1}
-}
-```
-
-##### Custom ModelManager
-  
-You can extend the `ModelManager` and add your own methods.
-```js
-class Album extends ServiceModel {
-  [...]
-
-  static ModelManager = class extends ServiceModel.ModelManager {
-    customMethod () {
-      const Model = this.model
-      return new Model({title: 'Custom Album'})
-    }
-  }
-}
-
-const customAlbum = Album.objects.customMethod()
-```
-
-It is also possible to overwrite some methods to do the `list`/`detail` request by yourself or map the response data before it gets cached and used for the model instance.
-
-* `sendListRequest`
-  * Gets called when doing a list request with `objects.list()`
-* `sendDetailRequest`
-  * Gets called when doing a detail with `objects.detail()`
-* `buildRetrieveRequestConfig`
-  * Gets called from `sendListRequest` and `sendDetailRequest` and uses [`RetrieveInterfaceParams`](#retrieveinterfaceparams) to return the [request configuration](https://github.com/axios/axios#request-config) for [axios](https://github.com/axios/axios).
-* `mapListResponseBeforeCache`
-  * Gets called from `sendListRequest` with the response data before the data will be cached
-* `mapDetailResponseBeforeCache`
-  * Gets called from `sendDetailRequest` with the response data before the data will be cached
 
 #### Aggregation
 
@@ -306,8 +234,8 @@ class MyModel extends BaseModel {
   [...]
 
   static fieldsDef = {
-    first_name: new fields.Field(),
-    last_name: new fields.Field()
+    first_name: new Field(),
+    last_name: new Field()
   }
 }
 
@@ -331,9 +259,9 @@ class MyModel extends BaseModel {
   [...]
 
   static fieldsDef = {
-    name: new fields.Field({attributeName: 'username'}),
-    address_city: new fields.Field({attributeName: 'address.city'}),
-    address_street: new fields.Field({attributeName: 'address.street.name'})
+    name: new Field({attributeName: 'username'}),
+    address_city: new Field({attributeName: 'address.city'}),
+    address_street: new Field({attributeName: 'address.street.name'})
   }
 }
 
@@ -362,7 +290,7 @@ class MyModel extends BaseModel {
   [...]
 
   static fieldsDef = {
-    first_name: new fields.Field({
+    first_name: new Field({
       label: 'First name',
       hint: () => 'First name of the employee'
     })
@@ -379,10 +307,10 @@ await firstNameField.hint // output: First name of the employee
 
 #### Custom/Computed fields
 
-In case you want to define your own field class you just need to extend from `fields.Field`. By overwriting the `valueGetter` method you are able to map the field value by yourself and create computed values.
+In case you want to define your own field class you just need to extend from `Field`. By overwriting the `valueGetter` method you are able to map the field value by yourself and create computed values.
 
 ```js
-class FullNameField extends fields.Field {
+class FullNameField extends Field {
   valueGetter (data) {
     return data ? data.first_name + ' ' + data.last_name : null
   }
@@ -408,6 +336,119 @@ myObj.val.full_name // output: Joe Bloggs
 
 Different field types will be added with future releases.
 
+### ModelManager (`objects`)
+
+The `ModelManager` provides the interface to perform the api requests. At the moment there are 2 default interface methods.
+
+#### Retrieve list of data (`objects.list()`)
+
+`objects.list()` is used to request a list of data (e.g. `/albums/`) and will return a list of model instances.
+You can optionally set [`RetrieveInterfaceParams`](#retrieveinterfaceparams) as only argument.
+The method will use [`getListUrl`](#urls), [`sendListRequest`](#custom-modelmanager) and [`mapListResponseBeforeCache`](#custom-modelmanager) which can be overwritten for customization.
+
+Examples:
+```js
+Album.objects.list() // Request: GET /albums/
+Photo.objects.list({parents: {album: 1}}) // Request: GET /albums/1/photos/
+Album.objects.list({filter: {userId: 1}}) // Request: GET /albums/?userId=1
+```
+
+#### Retrieve single entry of data (`objects.detail()`)
+
+`objects.detail()` is used to request a single entry (e.g. `/albums/1/`) and will return a model instance.
+The first argument is the primary key which can either be a `string` or `number`. You can optionally set [`RetrieveInterfaceParams`](#retrieveinterfaceparams) as second argument.
+The method will use [`getDetailUrl`](#urls), [`sendDetailRequest`](#custom-modelmanager) and [`mapDetailResponseBeforeCache`](#custom-modelmanager) which can be overwritten for customization.
+
+Examples:
+```js
+Album.objects.detail(1) // Request: GET /albums/1/
+Photo.objects.detail(5, {parents: {album: 1}}) // Request: GET /albums/1/photos/5/
+```
+
+#### RetrieveInterfaceParams
+
+With `RetrieveInterfaceParams` you can provide additional parameters for `objects.list()` and `objects.detail()` e.g. for using query parameters or [parents](#parents).
+
+Full structure example:
+```js
+{
+  // Optional service parents to handle nested RESTful services
+  parents: {album: 1},
+
+  // Filter params as plain object which will be converted to query parameters (params in axios)
+  filter: {userId: 1}
+}
+```
+
+#### Exceptions
+
+Error codes from response (e.g. 401 - Unauthorized) will be mapped to an `APIException`. You can catch a specific error by checking with `instanceof` for your required exception.
+
+```js
+import {APIException, UnauthorizedAPIException} from 'js-service-model'
+
+[...]
+
+try {
+  albums = await Album.objects.list()
+} catch (error) {
+  if (error instanceof UnauthorizedAPIException) {
+    // Unauthorized
+  } else if (error instanceof APIException) {
+    // Any other HTTP error status code
+  } else {
+    // Other exceptions
+    throw error  
+  }
+}
+```
+
+All API exceptions inherit from `APIException` and contain the response as property (`error.response`).
+
+HTTP status code | Exception
+---------------- | ------------
+400 - Bad Request | `BadRequestAPIException`
+401 - Unauthorized | `UnauthorizedAPIException`
+403 - Forbidden | `ForbiddenAPIException`
+404 - Not Found | `NotFoundAPIException`
+500 - Internal Server Error | `InternalServerErrorAPIException`
+Other | `APIException`
+
+#### Custom ModelManager
+  
+You can extend the `ModelManager` and add your own methods.
+```js
+import {ModelManager} from 'js-service-model'
+
+class Album extends ServiceModel {
+  [...]
+
+  static ModelManager = class extends ModelManager {
+    customMethod () {
+      const Model = this.model
+      return new Model({title: 'Custom Album'})
+    }
+  }
+}
+
+const customAlbum = Album.objects.customMethod()
+```
+
+It is also possible to overwrite some methods to do the `list`/`detail` request by yourself or map the response data before it gets cached and used for the model instance.
+
+* `sendListRequest`
+  * Gets called when doing a list request with `objects.list()`
+* `sendDetailRequest`
+  * Gets called when doing a detail with `objects.detail()`
+* `buildRetrieveRequestConfig`
+  * Gets called from `sendListRequest` and `sendDetailRequest` and uses [`RetrieveInterfaceParams`](#retrieveinterfaceparams) to return the [request configuration](https://github.com/axios/axios#request-config) for [axios](https://github.com/axios/axios).
+* `mapListResponseBeforeCache`
+  * Gets called from `sendListRequest` with the response data before the data will be cached
+* `mapDetailResponseBeforeCache`
+  * Gets called from `sendDetailRequest` with the response data before the data will be cached
+* `handleResponseError`
+  * Receives Errors from `axios` and maps it to api exceptions
+
 ## Future
 
 * Models
@@ -424,7 +465,6 @@ Different field types will be added with future releases.
   * Methods to allow generation of input/display components according to field type
   * Accessing foreign key fields and retrieving foreign model instances
 * Global configuration with hooks
-* Error handling
 * ...
 
 ## Contribution

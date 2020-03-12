@@ -1,38 +1,7 @@
 import Dictionary from '../types/Dictionary'
+import { ServiceStoreStateData, ServiceStoreOptions } from '../types/store/ServiceStore'
 
-/**
- * Internal cached data structure
- */
-interface ServiceStoreStateData {
-  /**
-   * Contains UNIX Timestamp when the cache will expire
-   */
-  expires?: number;
-  /**
-   * Actual cached data
-   */
-  data: any;
-}
-
-/**
- * Interface for input options
- */
-interface ServiceStoreOptions {
-  /**
-   * key to identify equal requests and data from cache
-   */
-  key: string;
-  /**
-   * Callback to perform actual service request. Should return result data which will be cached
-   */
-  sendRequest: (options: ServiceStoreOptions, ...args: Array<any>) => Promise<any>;
-  /**
-   * Additional arguments for the sendRequest callback
-   */
-  args?: Array<any>;
-}
-
-class ServiceStore {
+export class ServiceStore {
   /**
    * Dictionary of cached data structure by options.key
    */
@@ -87,20 +56,24 @@ class ServiceStore {
 
     // Actual request and save result in cache
     const request = options.sendRequest(options, ...(options.args || [])).then(data => {
-      this._setData({ data, key })
+      this._setData(key, data)
 
       return data
+    }, error => {
+      this.removeRequest(key)
+      throw error
     })
 
-    this._setRequest({ request, key })
+    this._setRequest(key, request)
     return request
   }
 
   /**
    * Save data in cache if required
-   * @param {data, key}
+   * @param key
+   * @param data
    */
-  protected _setData ({ data, key }: { data: Dictionary<any>; key: string }) {
+  protected _setData (key: string, data: Dictionary<any>) {
     if (this.cacheDuration !== 0) {
       const _data: ServiceStoreStateData = { data }
 
@@ -111,15 +84,24 @@ class ServiceStore {
       this._data[key] = _data
     }
 
-    delete this._requests[key]
+    this.removeRequest(key)
   }
 
   /**
    * Save started request promise
-   * @param {request, key}
+   * @param key
+   * @param request
    */
-  protected _setRequest ({ request, key }: { request: Promise<any>; key: string }) {
+  protected _setRequest (key: string, request: Promise<any>) {
     this._requests[key] = request
+  }
+
+  /**
+   * Remove request promise
+   * @param key
+   */
+  public removeRequest (key: string) {
+    delete this._requests[key]
   }
 
   /**
@@ -136,5 +118,3 @@ class ServiceStore {
     }
   }
 }
-
-export { ServiceStore, ServiceStoreOptions }

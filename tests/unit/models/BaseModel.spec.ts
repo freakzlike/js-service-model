@@ -1,5 +1,7 @@
-import { BaseModel, NotDeclaredFieldException } from '@/models/BaseModel'
-import { Field, FieldNotBoundException } from '@/fields/Field'
+import { BaseModel } from '@/models/BaseModel'
+import { Field } from '@/fields/Field'
+import { NotDeclaredFieldException } from '@/exceptions/ModelExceptions'
+import { FieldNotBoundException } from '@/exceptions/FieldExceptions'
 
 describe('models/BaseModel', () => {
   describe('constructor', () => {

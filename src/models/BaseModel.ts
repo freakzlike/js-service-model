@@ -1,21 +1,12 @@
 import Dictionary from '../types/Dictionary'
 import { BaseClass } from '../utils/BaseClass'
 import { Field } from '../fields/Field'
-
-class NotDeclaredFieldException extends Error {
-  constructor (model: BaseModel, fieldName: string) {
-    super('Field "' + fieldName + '" not declared on Model "' + model.cls.name + '"')
-    this.constructor = NotDeclaredFieldException
-    // @ts-ignore
-    // eslint-disable-next-line no-proto
-    this.__proto__ = NotDeclaredFieldException.prototype
-  }
-}
+import { NotDeclaredFieldException } from '../exceptions/ModelExceptions'
 
 /**
  * BaseModel class
  */
-class BaseModel extends BaseClass {
+export class BaseModel extends BaseClass {
   /**
    * Field definitions for current model
    * e.g:
@@ -87,8 +78,8 @@ class BaseModel extends BaseClass {
   public get val (): Dictionary<any> {
     return new Proxy(this, {
       get (target: BaseModel, name: string) {
-        const field = target.getField(name)
-        return field.valueGetter(target.data)
+        const field: Field = target.getField(name)
+        return field.value
       }
     })
   }
@@ -113,7 +104,8 @@ class BaseModel extends BaseClass {
 
     const fields = this.cls.fieldsDef
     for (const fieldName of Object.keys(fields)) {
-      this._fields[fieldName] = fields[fieldName].bind(fieldName)
+      const field = fields[fieldName] as Field
+      this._fields[fieldName] = field.bind({ name: fieldName, model: this })
     }
   }
 
@@ -127,5 +119,3 @@ class BaseModel extends BaseClass {
     return true
   }
 }
-
-export { BaseModel, NotDeclaredFieldException }
