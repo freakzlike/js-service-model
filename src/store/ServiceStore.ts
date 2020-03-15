@@ -107,7 +107,7 @@ export class ServiceStore {
   /**
    * Clean up data and remove expired cache
    */
-  clean () {
+  public clean () {
     let key
     const expiredTime = Date.now()
     for (key of Object.keys(this._data)) {
@@ -116,5 +116,13 @@ export class ServiceStore {
         delete this._data[key]
       }
     }
+  }
+
+  /**
+   * clear complete cache
+   */
+  public clear () {
+    this._data = {}
+    this._requests = {}
   }
 }

@@ -200,6 +200,8 @@ should be cached. The default value is 30 seconds. Currently the expired data wi
 * null: cache will not be removed
 * 0: no caching
 
+You can manually clear the complete cache including [aggregation](#aggregation) by calling `model.store.clear()`.
+
 #### Parents
 
 When using a nested RESTful service more information is necessary to uniquely identify a resource. You need to define `parents` in your `ServiceModel`.
@@ -507,7 +509,6 @@ It is also possible to overwrite some methods to do the `list`/`detail` request 
 * Models
   * Default support of model creation, update and delete with POST, PUT/PATCH and DELETE request
   * Cache
-    * API to clear cache
     * Define a different cacheDuration for a specific request
     * Argument on [`ModelManager`](#modelmanager-objects) methods to not use cache
     * Use cache from list response also for detail requests
@@ -515,7 +516,6 @@ It is also possible to overwrite some methods to do the `list`/`detail` request 
 * Fields
   * Different field types
   * Standalone field instances
-  * Methods to allow generation of input/display components according to field type
   * Accessing foreign key fields and retrieving foreign model instances
 * Global configuration with hooks
 * ...

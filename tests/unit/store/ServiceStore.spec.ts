@@ -191,4 +191,33 @@ describe('models/BaseModel', () => {
       spyGetTime.mockRestore()
     })
   })
+
+  describe('clear', () => {
+    it('should clear complete cache', async () => {
+      const serviceStore = new TestServiceStore(null)
+      let timeout
+
+      await serviceStore.getData({
+        key: 'key1', sendRequest: () => Promise.resolve(0)
+      })
+      serviceStore.getData({
+        key: 'key2',
+        sendRequest: () => new Promise(resolve => {
+          timeout = setTimeout(() => resolve(0), 50000)
+        })
+      })
+
+      expect(timeout).not.toBeUndefined()
+
+      expect(Object.keys(serviceStore.testGetCachedData)).toHaveLength(1)
+      expect(Object.keys(serviceStore.testGetCachedRequests)).toHaveLength(1)
+
+      serviceStore.clear()
+
+      expect(Object.keys(serviceStore.testGetCachedData)).toHaveLength(0)
+      expect(Object.keys(serviceStore.testGetCachedRequests)).toHaveLength(0)
+
+      clearTimeout(timeout)
+    })
+  })
 })
