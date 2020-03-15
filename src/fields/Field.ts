@@ -3,6 +3,7 @@ import { BaseClass } from '../utils/BaseClass'
 import { FieldNotBoundException } from '../exceptions/FieldExceptions'
 import { FieldDef, FieldBind } from '../types/fields/Field'
 import { BaseModel } from '../models'
+import Dictionary from '../types/Dictionary'
 
 export class Field extends BaseClass {
   /**
@@ -60,6 +61,8 @@ export class Field extends BaseClass {
 
   /**
    * Field name
+   * Returns field name (Which has been set as key at fieldsDef
+   * Will throw FieldNotBoundException in case field has not been bound to a model
    */
   public get name (): string {
     if (this._name === null) {
@@ -85,6 +88,7 @@ export class Field extends BaseClass {
 
   /**
    * Assigned model
+   * Will throw FieldNotBoundException in case field has not been bound to a model
    */
   public get model (): BaseModel {
     if (this._model === null) {
@@ -96,9 +100,18 @@ export class Field extends BaseClass {
 
   /**
    * Field value
+   * Returns field value from data by calling valueGetter with data of assigned model
    */
   public get value (): any {
     return this.valueGetter(this.model.data)
+  }
+
+  /**
+   * Field value setter
+   * Sets field value to model data by calling valueSetter with data of assigned model
+   */
+  public set value (value: any) {
+    this.valueSetter(value, this.model.data)
   }
 
   /**
@@ -117,6 +130,8 @@ export class Field extends BaseClass {
 
   /**
    * Retrieve value from data structure according to attributeName
+   * Uses nested syntax from attributeName (e.g. "address.city" -> {address: {city: 'New York'}})
+   * Will return null if value is not available
    */
   public valueGetter (data: any): any {
     if (!data || typeof data !== 'object') return null
@@ -143,6 +158,52 @@ export class Field extends BaseClass {
       return currentObject
     } else {
       return null
+    }
+  }
+
+  /**
+   * Mutate a data object
+   */
+  private static _mutateData (data: Dictionary<any>, attributeName: string, value: any) {
+    data[attributeName] = value
+  }
+
+  /**
+   * Set value of field to data by using attributeName
+   * Will create nested structure from attributeName (e.g. "address.city" -> {address: {city: 'New York'}})
+   */
+  public valueSetter (value: any, data: Dictionary<any>): void {
+    if (!this.attributeName.includes('.')) {
+      this.cls._mutateData(data, this.attributeName, value)
+    } else {
+      const subFields = this.attributeName.split('.') as string[]
+
+      // Retrieve start position for set
+      let fieldIndex = 0
+      let subFieldName = subFields[fieldIndex]
+      let currentData = data
+      while (true) {
+        if (Object.prototype.hasOwnProperty.call(currentData, subFieldName) && !cu.isNull(currentData[subFieldName])) {
+          currentData = currentData[subFieldName]
+        } else {
+          break
+        }
+
+        fieldIndex++
+        subFieldName = subFields[fieldIndex]
+        if (fieldIndex + 1 === subFields.length) {
+          break
+        }
+      }
+
+      // Build nested object which will be set as value
+      const setValue = subFields.splice(fieldIndex + 1).reduceRight((obj, subFieldName) => {
+        const newObj: Dictionary<any> = {}
+        newObj[subFieldName] = obj
+        return newObj
+      }, value)
+
+      this.cls._mutateData(currentData, subFieldName, setValue)
     }
   }
 }

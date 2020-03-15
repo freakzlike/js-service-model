@@ -34,6 +34,7 @@ Core library for handling REST service requests with caching, aggregation and mo
     * [Field definition (`fieldsDef`)](#field-definition-fieldsdef)
       * [Attribute name (`attributeName`)](#attribute-name-attributename)
       * [Field label and hint (`label`, `hint`)](#field-label-and-hint-label-hint)
+    * [Field API](#field-api)
     * [Custom/Computed fields](#customcomputed-fields)
     * [Field types](#field-types)
   * [ModelManager (`objects`)](#modelmanager-objects)
@@ -303,6 +304,53 @@ const firstNameField = myObj.getField('first_name')
 
 await firstNameField.label // output: First name
 await firstNameField.hint // output: First name of the employee
+```
+
+#### Field API
+
+```typescript
+class Field {
+  // Constructor takes field definition
+  constructor (def: FieldDef)
+
+  // Clone field instance
+  public clone (): Field
+
+  // Returns field name (Which has been set as key at fieldsDef.
+  // Will throw FieldNotBoundException in case field has not been bound to a model
+  public get name (): string
+
+  // Returns either attributeName from fieldsDef or field name
+  public get attributeName (): string
+
+  // Returns field definition
+  public get definition (): FieldDef
+
+  // Assigned model
+  // Will throw FieldNotBoundException in case field has not been bound to a model
+  public get model (): BaseModel
+
+  // Returns field value from data by calling valueGetter with data of assigned model
+  public get value (): any
+
+  // Sets field value to model data by calling valueSetter with data of assigned model
+  public set value (value: any)
+
+  // Returns async field label from field definition
+  public get label (): Promise<string>
+
+  // Returns async field hint from field definition
+  public get hint (): Promise<string>
+
+  // Retrieve value from data structure according to attributeName
+  // Uses nested syntax from attributeName (e.g. "address.city" -> {address: {city: 'New York'}})
+  // Will return null if value is not available
+  public valueGetter (data: any): any
+
+  // Set value to data by using attributeName
+  // Will create nested structure from attributeName (e.g. "address.city" -> {address: {city: 'New York'}})
+  public valueSetter (value: any, data: Dictionary<any>): void
+}
 ```
 
 #### Custom/Computed fields
