@@ -80,6 +80,12 @@ export class BaseModel extends BaseClass {
       get (target: BaseModel, name: string) {
         const field: Field = target.getField(name)
         return field.value
+      },
+
+      set (target: BaseModel, name: string, value: any): boolean {
+        const field: Field = target.getField(name)
+        field.value = value
+        return true
       }
     })
   }

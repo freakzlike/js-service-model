@@ -119,6 +119,11 @@ Retrieve value from a single field.
 obj.val.title // output: My title
 ```
 
+Set value of a field
+```js
+obj.val.title = 'New title'
+```
+
 Retrieve field instance of given field name
 ```js
 obj.getField('title')
