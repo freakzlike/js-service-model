@@ -24,6 +24,18 @@ export class ModelManager {
   }
 
   /**
+   * Fill ServiceStoreOptions default options from params
+   */
+  protected getServiceStoreOptions (options: ServiceStoreOptions, params: RetrieveInterfaceParams | undefined): ServiceStoreOptions {
+    return {
+      noCache: Boolean(params && params.noCache),
+      noRequestAggregation: Boolean(params && params.noRequestAggregation),
+      refreshCache: Boolean(params && params.refreshCache),
+      ...options
+    }
+  }
+
+  /**
    * Retrieve specific model instance
    * @param pk
    * @param params
@@ -36,11 +48,11 @@ export class ModelManager {
 
     const url = await Model.getDetailUrl(pk, parents)
 
-    const options: ServiceStoreOptions = {
+    const options = this.getServiceStoreOptions({
       key: url,
       sendRequest: this.sendDetailRequest.bind(this),
       args: [url, pk, params]
-    }
+    }, params)
 
     const data: Dictionary<any> = await Model.store.getData(options)
     return new Model(data)
@@ -63,11 +75,11 @@ export class ModelManager {
       keyBuilder.push(JSON.stringify(filterParams))
     }
 
-    const options: ServiceStoreOptions = {
+    const options = this.getServiceStoreOptions({
       key: keyBuilder.join('?'),
       sendRequest: this.sendListRequest.bind(this),
       args: [url, params]
-    }
+    }, params)
 
     const dataList: Array<ResponseData> = await Model.store.getData(options)
     return dataList.map(data => new Model(data))

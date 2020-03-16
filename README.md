@@ -192,6 +192,8 @@ When you start to request data from a service, for example `Album.objects.detail
 be saved as long as the request has not been completed. So when requesting `Album.objects.detail('1')` again (e.g from another component)
 this request will be attached to the first request which has not been completed yet and the request of the service will only made once.
 
+In case you want to avoid the request aggregation for a specific request see [`noRequestAggregation`](#retrieveinterfaceparams) in [ModelManager RetrieveInterfaceParams](#retrieveinterfaceparams).
+
 #### Cache
 
 With the static property `cacheDuration` it is possible to set the duration (in seconds) of how long the result of a response 
@@ -201,6 +203,8 @@ should be cached. The default value is 30 seconds. Currently the expired data wi
 * 0: no caching
 
 You can manually clear the complete cache including [aggregation](#aggregation) by calling `model.store.clear()`.
+
+In case you want to set cache options for a specific request see [ModelManager RetrieveInterfaceParams](#retrieveinterfaceparams).
 
 #### Parents
 
@@ -431,7 +435,19 @@ Full structure example:
   parents: {album: 1},
 
   // Filter params as plain object which will be converted to query parameters (params in axios)
-  filter: {userId: 1}
+  filter: {userId: 1},
+
+  // Do not use and set response cache. Requests will still be aggregated. Already cached data will not be cleared
+  // Optional: default = false
+  noCache: false,
+
+  // Do not use request aggregation. Response will still be set and used from cache
+  // Optional: default = false
+  noRequestAggregation: false,
+
+  // Cache will not be used but set. Requests will still be aggregated
+  // Optional: default = false
+  refreshCache: false
 }
 ```
 

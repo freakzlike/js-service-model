@@ -1,7 +1,7 @@
 import { ServiceStore } from '@/store/ServiceStore'
 import { ServiceStoreOptions } from '@/types/store/ServiceStore'
 
-describe('models/BaseModel', () => {
+describe('store/ServiceStore', () => {
   class TestServiceStore extends ServiceStore {
     get testGetCachedData () {
       return this._data
@@ -75,15 +75,15 @@ describe('models/BaseModel', () => {
       spySendRequest.mockRestore()
     })
 
-    it('should attach to running request', async () => {
+    it('should aggregate running requests', async () => {
       jest.useFakeTimers()
       const serviceStore = new TestServiceStore(0)
       const resultData = { x: 1 }
-      let timeout
+      const timeouts: number[] = []
       const options: ServiceStoreOptions = {
         key: 'serviceKey',
         sendRequest: () => new Promise(resolve => {
-          timeout = setTimeout(() => resolve(resultData), 50000)
+          timeouts.push(setTimeout(() => resolve(resultData), 50000))
         })
       }
       const spySendRequest = jest.spyOn(options, 'sendRequest')
@@ -91,10 +91,12 @@ describe('models/BaseModel', () => {
       const promise1 = serviceStore.getData(options)
       expect(promise1).toBeInstanceOf(Promise)
       expect(spySendRequest).toBeCalledTimes(1)
-      expect(timeout).not.toBeUndefined()
+      expect(timeouts).toHaveLength(1)
+
       const promise2 = serviceStore.getData(options)
       expect(promise2).toBeInstanceOf(Promise)
       expect(spySendRequest).toBeCalledTimes(1)
+      expect(timeouts).toHaveLength(1)
 
       expect(serviceStore.testGetCachedData).not.toHaveProperty(options.key)
       expect(serviceStore.testGetCachedRequests).toHaveProperty(options.key)
@@ -105,7 +107,7 @@ describe('models/BaseModel', () => {
       expect(await promise2).toBe(resultData)
 
       spySendRequest.mockRestore()
-      clearTimeout(timeout)
+      timeouts.forEach(timeout => clearTimeout(timeout))
     })
 
     it('should expire cache and request data', async () => {
@@ -160,6 +162,92 @@ describe('models/BaseModel', () => {
 
       spySendRequest.mockRestore()
     })
+
+    it('should not use and set cache with options.noCache', async () => {
+      const serviceStore = new TestServiceStore(null)
+      let sendRequestCalled = 0
+      const options: ServiceStoreOptions = {
+        key: 'serviceKey',
+        sendRequest: () => {
+          sendRequestCalled++
+          return Promise.resolve(sendRequestCalled)
+        }
+      }
+      const spySendRequest = jest.spyOn(options, 'sendRequest')
+
+      expect(await serviceStore.getData(options)).toBe(1)
+      expect(spySendRequest).toBeCalledTimes(1)
+
+      options.noCache = true
+      expect(await serviceStore.getData(options)).toBe(2)
+      expect(spySendRequest).toBeCalledTimes(2)
+
+      expect(serviceStore.testGetCachedData).toHaveProperty(options.key)
+      expect(serviceStore.testGetCachedData[options.key].data).toBe(1)
+
+      spySendRequest.mockRestore()
+    })
+
+    it('should ignore cache and refresh it with options.refreshCache', async () => {
+      const serviceStore = new TestServiceStore(null)
+      let sendRequestCalled = 0
+      const options: ServiceStoreOptions = {
+        key: 'serviceKey',
+        sendRequest: () => {
+          sendRequestCalled++
+          return Promise.resolve(sendRequestCalled)
+        }
+      }
+      const spySendRequest = jest.spyOn(options, 'sendRequest')
+
+      expect(await serviceStore.getData(options)).toBe(1)
+      expect(spySendRequest).toBeCalledTimes(1)
+
+      options.refreshCache = true
+      expect(await serviceStore.getData(options)).toBe(2)
+      expect(spySendRequest).toBeCalledTimes(2)
+
+      expect(serviceStore.testGetCachedData).toHaveProperty(options.key)
+      expect(serviceStore.testGetCachedData[options.key].data).toBe(2)
+
+      spySendRequest.mockRestore()
+    })
+
+    it('should not aggregate running requests with options.noRequestAggregation', async () => {
+      jest.useFakeTimers()
+      const serviceStore = new TestServiceStore(0)
+      const timeouts: number[] = []
+      const options: ServiceStoreOptions = {
+        key: 'serviceKey',
+        sendRequest: () => new Promise(resolve => {
+          const result = timeouts.length + 1
+          timeouts.push(setTimeout(() => resolve(result), 50000))
+        })
+      }
+      const spySendRequest = jest.spyOn(options, 'sendRequest')
+
+      const promise1 = serviceStore.getData(options)
+      expect(promise1).toBeInstanceOf(Promise)
+      expect(spySendRequest).toBeCalledTimes(1)
+      expect(serviceStore.testGetCachedRequests).toHaveProperty(options.key)
+      expect(timeouts).toHaveLength(1)
+
+      options.noRequestAggregation = true
+      const promise2 = serviceStore.getData(options)
+      expect(promise2).toBeInstanceOf(Promise)
+      expect(spySendRequest).toBeCalledTimes(2)
+      expect(timeouts).toHaveLength(2)
+
+      expect(serviceStore.testGetCachedData).not.toHaveProperty(options.key)
+
+      jest.runOnlyPendingTimers()
+
+      expect(await promise1).toBe(1)
+      expect(await promise2).toBe(2)
+
+      spySendRequest.mockRestore()
+      timeouts.forEach(timeout => clearTimeout(timeout))
+    })
   })
 
   describe('clean', () => {
@@ -195,7 +283,7 @@ describe('models/BaseModel', () => {
   describe('clear', () => {
     it('should clear complete cache', async () => {
       const serviceStore = new TestServiceStore(null)
-      let timeout
+      const timeouts: number[] = []
 
       await serviceStore.getData({
         key: 'key1', sendRequest: () => Promise.resolve(0)
@@ -203,11 +291,11 @@ describe('models/BaseModel', () => {
       serviceStore.getData({
         key: 'key2',
         sendRequest: () => new Promise(resolve => {
-          timeout = setTimeout(() => resolve(0), 50000)
+          timeouts.push(setTimeout(() => resolve(0), 50000))
         })
       })
 
-      expect(timeout).not.toBeUndefined()
+      expect(timeouts).toHaveLength(1)
 
       expect(Object.keys(serviceStore.testGetCachedData)).toHaveLength(1)
       expect(Object.keys(serviceStore.testGetCachedRequests)).toHaveLength(1)
@@ -217,7 +305,8 @@ describe('models/BaseModel', () => {
       expect(Object.keys(serviceStore.testGetCachedData)).toHaveLength(0)
       expect(Object.keys(serviceStore.testGetCachedRequests)).toHaveLength(0)
 
-      clearTimeout(timeout)
+      jest.runOnlyPendingTimers()
+      timeouts.forEach(timeout => clearTimeout(timeout))
     })
   })
 })
