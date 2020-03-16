@@ -100,10 +100,10 @@ export class Field extends BaseClass {
 
   /**
    * Field value
-   * Returns field value from data by calling valueGetter with data of assigned model
+   * Returns async field value from data by calling valueGetter with data of assigned model
    */
   public get value (): any {
-    return this.valueGetter(this.model.data)
+    return Promise.resolve(this.valueGetter(this.model.data))
   }
 
   /**

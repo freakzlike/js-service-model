@@ -116,7 +116,7 @@ obj.fields
 Retrieve value from a single field.
 ```js
 // Retrieve value for field 'title'
-obj.val.title // output: My title
+await obj.val.title // output: My title
 ```
 
 Set value of a field
@@ -256,8 +256,8 @@ const myObj = new MyModel({
   last_name: 'Bloggs'
 })
 
-myObj.val.first_name // output: Joe
-myObj.val.last_name // output: Bloggs
+await myObj.val.first_name // output: Joe
+await myObj.val.last_name // output: Bloggs
 ```
 
 ##### Attribute name (`attributeName`)
@@ -287,9 +287,9 @@ const myObj = new MyModel({
   }
 })
 
-myObj.val.name // output: joe_bloggs
-myObj.val.address_city // output: New York
-myObj.val.address_street // output: Fifth Avenue
+await myObj.val.name // output: joe_bloggs
+await myObj.val.address_city // output: New York
+await myObj.val.address_street // output: Fifth Avenue
 ```
 
 ##### Field label and hint (`label`, `hint`)
@@ -341,7 +341,7 @@ class Field {
   // Will throw FieldNotBoundException in case field has not been bound to a model
   public get model (): BaseModel
 
-  // Returns field value from data by calling valueGetter with data of assigned model
+  // Returns async field value from data by calling valueGetter with data of assigned model
   public get value (): any
 
   // Sets field value to model data by calling valueSetter with data of assigned model
@@ -388,7 +388,7 @@ const myObj = new MyModel({
   last_name: 'Bloggs'
 })
 
-myObj.val.full_name // output: Joe Bloggs
+await myObj.val.full_name // output: Joe Bloggs
 ```
 
 #### Field types
@@ -526,7 +526,6 @@ It is also possible to overwrite some methods to do the `list`/`detail` request 
   * Default support of model creation, update and delete with POST, PUT/PATCH and DELETE request
   * Cache
     * Define a different cacheDuration for a specific request
-    * Argument on [`ModelManager`](#modelmanager-objects) methods to not use cache
     * Use cache from list response also for detail requests
     * "garbage collector" to remove expired cache
 * Fields

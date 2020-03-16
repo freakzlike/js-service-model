@@ -111,17 +111,17 @@ describe('models/BaseModel', () => {
 
     const model = new TestModel(data)
 
-    it('should return correct values', () => {
-      expect(model.val.name).toBe(data.name)
-      expect(model.val.obj).toBe(data.obj)
-      expect(model.val.description).toBeNull()
+    it('should return correct values', async () => {
+      expect(await model.val.name).toBe(data.name)
+      expect(await model.val.obj).toBe(data.obj)
+      expect(await model.val.description).toBeNull()
       expect(() => model.val.no_field).toThrow(NotDeclaredFieldException)
     })
 
-    it('should set correct value', () => {
+    it('should set correct value', async () => {
       const newName = 'New Name'
       model.val.name = newName
-      expect(model.val.name).toBe(newName)
+      expect(await model.val.name).toBe(newName)
       expect(data.name).toBe(newName)
       expect(() => (model.val.no_field = 'new value')).toThrow(NotDeclaredFieldException)
       expect(data).toEqual({ name: newName, obj: data.obj })

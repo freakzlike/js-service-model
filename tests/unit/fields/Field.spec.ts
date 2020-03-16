@@ -132,14 +132,14 @@ describe('fields/Field', () => {
   })
 
   describe('get value', () => {
-    it('should return field value', () => {
+    it('should return field value', async () => {
       const data = { description: 'desc value' }
       const model = new TestModel(data)
 
       const field = new Field({}, { name: 'description', model })
       const mockValueGetter = jest.spyOn(field, 'valueGetter')
 
-      expect(field.value).toBe(data.description)
+      expect(await field.value).toBe(data.description)
 
       expect(mockValueGetter).toBeCalledTimes(1)
       expect(mockValueGetter.mock.calls[0]).toEqual([data])
