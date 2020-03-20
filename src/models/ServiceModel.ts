@@ -4,6 +4,7 @@ import cu from '../utils/common'
 import { ServiceStore } from '../store/ServiceStore'
 import { ServiceParent } from '../types/models/ServiceModel'
 import { MissingUrlException } from '../exceptions/ModelExceptions'
+import { PrimaryKey } from '../types/models/ModelManager'
 
 /**
  * ServiceModel
@@ -86,7 +87,7 @@ export class ServiceModel extends BaseModel {
    * @param pk
    * @param parents
    */
-  public static async getDetailUrl (pk: string | number, parents?: ServiceParent): Promise<string> {
+  public static async getDetailUrl (pk: PrimaryKey, parents?: ServiceParent): Promise<string> {
     this.checkServiceParents(parents)
 
     const url: string = (() => {

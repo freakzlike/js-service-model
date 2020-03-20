@@ -4,6 +4,7 @@ import { AxiosResponse } from 'axios'
 
 export type FilterParams = Dictionary<any>
 export type ResponseData = Dictionary<any>
+export type PrimaryKey = string | number
 
 export interface RetrieveInterfaceParams {
   /**
@@ -26,6 +27,13 @@ export interface RetrieveInterfaceParams {
    * Cache will not be used but set. Requests will still be aggregated
    */
   refreshCache?: boolean
+}
+
+export interface DeleteInterfaceParams {
+  /**
+   * Service parents to handle nested RESTful services
+   */
+  parents?: ServiceParent
 }
 
 export interface Response extends AxiosResponse {

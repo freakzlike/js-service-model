@@ -40,6 +40,7 @@ Core library for handling REST service requests with caching, aggregation and mo
   * [ModelManager (`objects`)](#modelmanager-objects)
     * [Retrieve list of data (`objects.list()`)](#retrieve-list-of-data-objectslist)
     * [Retrieve single entry of data (`objects.detail()`)](#retrieve-single-entry-of-data-objectsdetail)
+    * [Delete single entry (`objects.delete()`)](#delete-single-entry-objectsdelete)
     * [RetrieveInterfaceParams](#retrieveinterfaceparams)
     * [Exceptions](#exceptions)
     * [Custom ModelManager](#custom-modelmanager)
@@ -424,6 +425,17 @@ Album.objects.detail(1) // Request: GET /albums/1/
 Photo.objects.detail(5, {parents: {album: 1}}) // Request: GET /albums/1/photos/5/
 ```
 
+#### Delete single entry (`objects.delete()`)
+
+`objects.delete()` is used to delete a single entry under (e.g. `/albums/1/`) by sending a request with method `DELETE`.
+The method will use [`getDetailUrl`](#urls) and [`sendDeleteRequest`](#custom-modelmanager).
+
+Examples:
+```js
+Album.objects.delete(1) // Request: DELETE /albums/1/
+Photo.objects.delete(5, {parents: {album: 1}}) // Request: DELETE /albums/1/photos/5/
+```
+
 #### RetrieveInterfaceParams
 
 With `RetrieveInterfaceParams` you can provide additional parameters for `objects.list()` and `objects.detail()` e.g. for using query parameters or [parents](#parents).
@@ -511,6 +523,8 @@ It is also possible to overwrite some methods to do the `list`/`detail` request 
   * Gets called when doing a list request with `objects.list()`
 * `sendDetailRequest`
   * Gets called when doing a detail with `objects.detail()`
+* `sendDetailRequest`
+  * Gets called when sending a delete with `objects.delete()`
 * `buildRetrieveRequestConfig`
   * Gets called from `sendListRequest` and `sendDetailRequest` and uses [`RetrieveInterfaceParams`](#retrieveinterfaceparams) to return the [request configuration](https://github.com/axios/axios#request-config) for [axios](https://github.com/axios/axios).
 * `mapListResponseBeforeCache`

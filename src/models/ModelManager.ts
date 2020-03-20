@@ -2,7 +2,7 @@ import Dictionary from '../types/Dictionary'
 import { ServiceModel } from './ServiceModel'
 import { ServiceStoreOptions } from '../types/store/ServiceStore'
 import axios, { AxiosRequestConfig } from 'axios'
-import { ResponseData, RetrieveInterfaceParams } from '../types/models/ModelManager'
+import { ResponseData, RetrieveInterfaceParams, PrimaryKey, DeleteInterfaceParams } from '../types/models/ModelManager'
 import {
   APIException,
   BadRequestAPIException,
@@ -40,12 +40,10 @@ export class ModelManager {
    * @param pk
    * @param params
    */
-  public async detail (pk: string | number, params?: RetrieveInterfaceParams): Promise<ServiceModel> {
+  public async detail (pk: PrimaryKey, params?: RetrieveInterfaceParams): Promise<ServiceModel> {
     const parents = params && params.parents
 
     const Model = this.model
-    Model.checkServiceParents(parents)
-
     const url = await Model.getDetailUrl(pk, parents)
 
     const options = this.getServiceStoreOptions({
@@ -67,9 +65,7 @@ export class ModelManager {
     const filterParams = params && params.filter
 
     const Model = this.model
-    Model.checkServiceParents(parents)
-
-    const url = await this.model.getListUrl(parents)
+    const url = await Model.getListUrl(parents)
     const keyBuilder = [url]
     if (filterParams && Object.keys(filterParams).length > 0) {
       keyBuilder.push(JSON.stringify(filterParams))
@@ -83,6 +79,19 @@ export class ModelManager {
 
     const dataList: Array<ResponseData> = await Model.store.getData(options)
     return dataList.map(data => new Model(data))
+  }
+
+  /**
+   * Delete single instance
+   * @param pk
+   * @param params
+   */
+  public async delete (pk: PrimaryKey, params?: DeleteInterfaceParams): Promise<null> {
+    const parents = params && params.parents
+
+    const Model = this.model
+    const url = await Model.getDetailUrl(pk, parents)
+    return this.sendDeleteRequest(url, pk, params)
   }
 
   /**
@@ -109,7 +118,7 @@ export class ModelManager {
   public async sendDetailRequest (
     options: ServiceStoreOptions,
     url: string,
-    pk: string | number,
+    pk: PrimaryKey,
     params?: RetrieveInterfaceParams
   ): Promise<ResponseData> {
     const config = await this.buildRetrieveRequestConfig(params)
@@ -135,7 +144,7 @@ export class ModelManager {
     options: ServiceStoreOptions,
     data: Array<ResponseData>,
     url: string,
-    pk: string | number,
+    pk: PrimaryKey,
     params?: RetrieveInterfaceParams
   ): Promise<ResponseData> {
     return data
@@ -177,6 +186,21 @@ export class ModelManager {
     params?: RetrieveInterfaceParams
   ): Promise<Array<ResponseData>> {
     return data
+  }
+
+  /**
+   * Send actual delete service request
+   * @param url
+   * @param pk
+   * @param params
+   */
+  public async sendDeleteRequest (url: string, pk: PrimaryKey, params?: DeleteInterfaceParams): Promise<null> {
+    try {
+      await axios.delete(url)
+    } catch (error) {
+      throw await this.handleResponseError(error)
+    }
+    return null
   }
 
   /**
