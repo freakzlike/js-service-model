@@ -80,6 +80,15 @@ const album = await Album.objects.detail(1)
 
 // Retrieve filtered list from /albums/?userId=1
 const userAlbums = await Album.objects.list({filter: {userId: 1}})
+
+// Create new album
+await Album.objects.create({title: 'New album'})
+
+// Update an album
+await Album.objects.update(1, {title: 'Updated album'})
+
+// Delete specific album
+await Album.objects.delete(1)
 ```
 
 You can easily access the data from a model instance or define model [fields](#fields).
