@@ -41,6 +41,7 @@ Core library for handling REST service requests with caching, aggregation and mo
     * [Retrieve list of data (`objects.list()`)](#retrieve-list-of-data-objectslist)
     * [Retrieve single entry of data (`objects.detail()`)](#retrieve-single-entry-of-data-objectsdetail)
     * [Create single entry (`objects.create()`)](#create-single-entry-objectscreate)
+    * [Update single entry (`objects.update()`)](#update-single-entry-objectsupdate)
     * [Delete single entry (`objects.delete()`)](#delete-single-entry-objectsdelete)
     * [RetrieveInterfaceParams](#retrieveinterfaceparams)
     * [Exceptions](#exceptions)
@@ -437,6 +438,18 @@ Album.objects.create({title: 'New Album'}) // Request: POST /albums/
 Photo.objects.create({title: 'New Photo'}, {parents: {album: 1}}) // Request: POST /albums/1/photos/
 ```
 
+#### Update single entry (`objects.update()`)
+
+`objects.update()` is used to update a single entry under (e.g. `/albums/1/`) by sending a request with method `PUT`.
+The first argument is the primary key which can either be a `string` or `number`. You can provide your data you want to send with put as first argument.
+The method will use [`getDetailUrl`](#urls) and [`sendUpdateRequest`](#custom-modelmanager).
+
+Examples:
+```js
+Album.objects.update(1, {title: 'Updated Album'}) // Request: PUT /albums/1/
+Photo.objects.update(5, {title: 'Updated Photo'}, {parents: {album: 1}}) // Request: PUT /albums/1/photos/5/
+```
+
 #### Delete single entry (`objects.delete()`)
 
 `objects.delete()` is used to delete a single entry under (e.g. `/albums/1/`) by sending a request with method `DELETE`.
@@ -535,7 +548,11 @@ It is also possible to overwrite some methods to do the `list`/`detail` request 
   * Gets called when doing a list request with `objects.list()`
 * `sendDetailRequest`
   * Gets called when doing a detail with `objects.detail()`
-* `sendDetailRequest`
+* `sendCreateRequest`
+  * Gets called when sending a create with `objects.create()`
+* `sendUpdateRequest`
+  * Gets called when sending a update with `objects.update()`
+* `sendDeleteRequest`
   * Gets called when sending a delete with `objects.delete()`
 * `buildRetrieveRequestConfig`
   * Gets called from `sendListRequest` and `sendDetailRequest` and uses [`RetrieveInterfaceParams`](#retrieveinterfaceparams) to return the [request configuration](https://github.com/axios/axios#request-config) for [axios](https://github.com/axios/axios).

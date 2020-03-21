@@ -384,6 +384,66 @@ describe('models/ModelManager', () => {
   })
 
   /**
+   * objects.update()
+   */
+  describe('update', () => {
+    it('should send update request', async () => {
+      const responseData = { value: 1, id: 5 }
+      await withMockedAxios(responseData, async mockedAxios => {
+        const mockSendUpdateRequest = jest.spyOn(TestModel.objects, 'sendUpdateRequest')
+
+        const pk = 1
+        const putData = { value: 1 }
+        const result = await TestModel.objects.update(1, putData)
+
+        const url = BASE_URL + pk + '/'
+        expect(mockedAxios.put.mock.calls).toHaveLength(1)
+        expect(mockedAxios.put.mock.calls).toEqual([[url, putData]])
+        expect(mockSendUpdateRequest).toBeCalledTimes(1)
+
+        expect(result).toBe(responseData)
+        mockSendUpdateRequest.mockRestore()
+      }, 'put')
+    })
+
+    it('should send update request with parents', async () => {
+      const responseData = { value: 1, id: 5 }
+      await withMockedAxios(responseData, async mockedAxios => {
+        const mockCheckServiceParents = jest.spyOn(ParentTestModel, 'checkServiceParents')
+        const mockSendUpdateRequest = jest.spyOn(ParentTestModel.objects, 'sendUpdateRequest')
+
+        const pk = 1
+        const putData = { value: 1 }
+        const parents: ServiceParent = { parent1: 'parent-1', parent2: 8 }
+        const result = await ParentTestModel.objects.update(1, putData, { parents })
+
+        const url = cu.format(PARENT_BASE_URL, parents) + pk + '/'
+        expect(mockedAxios.put.mock.calls).toHaveLength(1)
+        expect(mockedAxios.put.mock.calls).toEqual([[url, putData]])
+        expect(mockCheckServiceParents).toBeCalledTimes(1)
+        expect(mockSendUpdateRequest).toBeCalledTimes(1)
+
+        expect(result).toBe(responseData)
+        mockSendUpdateRequest.mockRestore()
+        mockCheckServiceParents.mockRestore()
+      }, 'put')
+    })
+
+    it('should handle error from service', async () => {
+      await withMockedAxios(null, async mockedAxios => {
+        const mockHandleResponseError = jest.spyOn(TestModel.objects, 'handleResponseError')
+        const customError = new Error('Handle error')
+        mockedAxios.put.mockRejectedValue(customError)
+
+        expect.assertions(2)
+        await expect(TestModel.objects.update(1, { value: 1 })).rejects.toBe(customError)
+        expect(mockHandleResponseError).toBeCalledTimes(1)
+        mockHandleResponseError.mockRestore()
+      }, 'put')
+    })
+  })
+
+  /**
    * objects.delete()
    */
   describe('delete', () => {

@@ -7,7 +7,8 @@ import {
   RetrieveInterfaceParams,
   PrimaryKey,
   DeleteInterfaceParams,
-  CreateInterfaceParams
+  CreateInterfaceParams,
+  UpdateInterfaceParams
 } from '../types/models/ModelManager'
 import {
   APIException,
@@ -99,9 +100,18 @@ export class ModelManager {
   }
 
   /**
+   * Update single instance
+   */
+  public async update (pk: PrimaryKey, data: any, params?: UpdateInterfaceParams): Promise<any> {
+    const parents = params && params.parents
+
+    const Model = this.model
+    const url = await Model.getDetailUrl(pk, parents)
+    return this.sendUpdateRequest(url, pk, data, params)
+  }
+
+  /**
    * Delete single instance
-   * @param pk
-   * @param params
    */
   public async delete (pk: PrimaryKey, params?: DeleteInterfaceParams): Promise<null> {
     const parents = params && params.parents
@@ -212,6 +222,19 @@ export class ModelManager {
     let response
     try {
       response = await axios.post(url, data)
+    } catch (error) {
+      throw await this.handleResponseError(error)
+    }
+    return response.data
+  }
+
+  /**
+   * Send actual update service request
+   */
+  public async sendUpdateRequest (url: string, pk: PrimaryKey, data: any, params?: UpdateInterfaceParams): Promise<any> {
+    let response
+    try {
+      response = await axios.put(url, data)
     } catch (error) {
       throw await this.handleResponseError(error)
     }

@@ -33,9 +33,19 @@ export interface RetrieveInterfaceParams {
 }
 
 /**
- * Interface params for ModelManager detail and list
+ * Interface params for ModelManager create
  */
 export interface CreateInterfaceParams {
+  /**
+   * Service parents to handle nested RESTful services
+   */
+  parents?: ServiceParent
+}
+
+/**
+ * Interface params for ModelManager update
+ */
+export interface UpdateInterfaceParams {
   /**
    * Service parents to handle nested RESTful services
    */
