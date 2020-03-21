@@ -30,8 +30,10 @@ export class ServiceStore {
   public async getData (options: ServiceStoreOptions): Promise<any> {
     const key = options.key
 
+    const useCache = this.useCache(options)
+
     // Retrieve data from cache
-    if (Object.prototype.hasOwnProperty.call(this._data, key)) {
+    if (useCache && Object.prototype.hasOwnProperty.call(this._data, key)) {
       const data = this._data[key]
       // Cache expired
       if (!data.expires || data.expires > Date.now()) {
@@ -50,13 +52,15 @@ export class ServiceStore {
     const key = options.key
 
     // Request with key has already been started
-    if (Object.prototype.hasOwnProperty.call(this._requests, key) && this._requests[key] !== null) {
-      return this._requests[key]
-    }
+    const aggregatedRequest = this.getRequestAggregation(options)
+    if (aggregatedRequest) return aggregatedRequest
 
     // Actual request and save result in cache
     const request = options.sendRequest(options, ...(options.args || [])).then(data => {
-      this._setData(key, data)
+      if (!options.noCache) {
+        this._setData(key, data)
+      }
+      this.removeRequest(key)
 
       return data
     }, error => {
@@ -64,7 +68,9 @@ export class ServiceStore {
       throw error
     })
 
-    this._setRequest(key, request)
+    if (!options.noRequestAggregation) {
+      this._setRequest(key, request)
+    }
     return request
   }
 
@@ -83,8 +89,6 @@ export class ServiceStore {
 
       this._data[key] = _data
     }
-
-    this.removeRequest(key)
   }
 
   /**
@@ -94,6 +98,29 @@ export class ServiceStore {
    */
   protected _setRequest (key: string, request: Promise<any>) {
     this._requests[key] = request
+  }
+
+  /**
+   * Check whether data should be retrieved from cache or not
+   * @param options
+   */
+  protected useCache (options: ServiceStoreOptions): boolean {
+    return !options.noCache && !options.refreshCache
+  }
+
+  /**
+   * Check whether request is already in queue and return request promise if so
+   * @param options
+   */
+  protected getRequestAggregation (options: ServiceStoreOptions): Promise<any> | null {
+    if (options.noRequestAggregation) return null
+
+    const key = options.key
+    if (Object.prototype.hasOwnProperty.call(this._requests, key)) {
+      return this._requests[key]
+    }
+
+    return null
   }
 
   /**
@@ -107,7 +134,7 @@ export class ServiceStore {
   /**
    * Clean up data and remove expired cache
    */
-  clean () {
+  public clean () {
     let key
     const expiredTime = Date.now()
     for (key of Object.keys(this._data)) {
@@ -116,5 +143,13 @@ export class ServiceStore {
         delete this._data[key]
       }
     }
+  }
+
+  /**
+   * clear complete cache
+   */
+  public clear () {
+    this._data = {}
+    this._requests = {}
   }
 }

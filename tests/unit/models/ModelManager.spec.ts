@@ -47,17 +47,18 @@ describe('models/ModelManager', () => {
 
   const withMockedAxios = async (
     response: Dictionary<any> | Array<Dictionary<any>> | null,
-    callback: (mockedAxios: jest.Mocked<typeof axios>) => void
+    callback: (mockedAxios: jest.Mocked<typeof axios>) => void,
+    method: 'get' | 'post' | 'put' | 'patch' | 'delete' = 'get'
   ) => {
     const mockedAxios = axios as jest.Mocked<typeof axios>
     if (response) {
-      mockedAxios.get.mockResolvedValue({ data: response })
+      mockedAxios[method].mockResolvedValue({ data: response })
     }
 
     try {
       await callback(mockedAxios)
     } finally {
-      mockedAxios.get.mockClear()
+      mockedAxios[method].mockClear()
     }
   }
 
@@ -127,7 +128,7 @@ describe('models/ModelManager', () => {
         const parents: ServiceParent = { parent1: 'parent-1', parent2: 8 }
         const resultData = await ParentTestModel.objects.list({ parents })
 
-        expect(mockCheckServiceParents).toBeCalledTimes(2)
+        expect(mockCheckServiceParents).toBeCalledTimes(1)
         expect(mockedAxios.get.mock.calls).toHaveLength(1)
         expect(mockedAxios.get.mock.calls).toEqual([[cu.format(PARENT_BASE_URL, parents), {}]])
 
@@ -153,7 +154,7 @@ describe('models/ModelManager', () => {
         const parents: ServiceParent = { parent1: 'parent-1', parent2: 8 }
         const resultData = await ParentTestModel.objects.list({ parents, filter: filterParams })
 
-        expect(mockCheckServiceParents).toBeCalledTimes(2)
+        expect(mockCheckServiceParents).toBeCalledTimes(1)
         expect(mockedAxios.get.mock.calls).toHaveLength(1)
         expect(mockedAxios.get.mock.calls).toEqual([[cu.format(PARENT_BASE_URL, parents), { params: filterParams }]])
 
@@ -261,7 +262,7 @@ describe('models/ModelManager', () => {
         const entry = await ParentTestModel.objects.detail(pk, { parents })
 
         const url = cu.format(PARENT_BASE_URL, parents) + pk + '/'
-        expect(mockCheckServiceParents).toBeCalledTimes(2)
+        expect(mockCheckServiceParents).toBeCalledTimes(1)
         expect(mockedAxios.get.mock.calls).toHaveLength(1)
         expect(mockedAxios.get.mock.calls).toEqual([[url, {}]])
         expect(mockSendDetailRequest).toBeCalledTimes(1)
@@ -321,6 +322,180 @@ describe('models/ModelManager', () => {
         expect(mockHandleResponseError).toBeCalledTimes(1)
         mockHandleResponseError.mockRestore()
       })
+    })
+  })
+
+  /**
+   * objects.create()
+   */
+  describe('create', () => {
+    it('should send create request', async () => {
+      const responseData = { value: 1, id: 5 }
+      await withMockedAxios(responseData, async mockedAxios => {
+        const mockSendCreateRequest = jest.spyOn(TestModel.objects, 'sendCreateRequest')
+
+        const postData = { value: 1 }
+        const result = await TestModel.objects.create(postData)
+
+        const url = BASE_URL
+        expect(mockedAxios.post.mock.calls).toHaveLength(1)
+        expect(mockedAxios.post.mock.calls).toEqual([[url, postData]])
+        expect(mockSendCreateRequest).toBeCalledTimes(1)
+
+        expect(result).toBe(responseData)
+        mockSendCreateRequest.mockRestore()
+      }, 'post')
+    })
+
+    it('should send create request with parents', async () => {
+      const responseData = { value: 1, id: 5 }
+      await withMockedAxios(responseData, async mockedAxios => {
+        const mockCheckServiceParents = jest.spyOn(ParentTestModel, 'checkServiceParents')
+        const mockSendCreateRequest = jest.spyOn(ParentTestModel.objects, 'sendCreateRequest')
+
+        const postData = { value: 1 }
+        const parents: ServiceParent = { parent1: 'parent-1', parent2: 8 }
+        const result = await ParentTestModel.objects.create(postData, { parents })
+
+        const url = cu.format(PARENT_BASE_URL, parents)
+        expect(mockedAxios.post.mock.calls).toHaveLength(1)
+        expect(mockedAxios.post.mock.calls).toEqual([[url, postData]])
+        expect(mockCheckServiceParents).toBeCalledTimes(1)
+        expect(mockSendCreateRequest).toBeCalledTimes(1)
+
+        expect(result).toBe(responseData)
+        mockSendCreateRequest.mockRestore()
+        mockCheckServiceParents.mockRestore()
+      }, 'post')
+    })
+
+    it('should handle error from service', async () => {
+      await withMockedAxios(null, async mockedAxios => {
+        const mockHandleResponseError = jest.spyOn(TestModel.objects, 'handleResponseError')
+        const customError = new Error('Handle error')
+        mockedAxios.post.mockRejectedValue(customError)
+
+        expect.assertions(2)
+        await expect(TestModel.objects.create({ value: 1 })).rejects.toBe(customError)
+        expect(mockHandleResponseError).toBeCalledTimes(1)
+        mockHandleResponseError.mockRestore()
+      }, 'post')
+    })
+  })
+
+  /**
+   * objects.update()
+   */
+  describe('update', () => {
+    it('should send update request', async () => {
+      const responseData = { value: 1, id: 5 }
+      await withMockedAxios(responseData, async mockedAxios => {
+        const mockSendUpdateRequest = jest.spyOn(TestModel.objects, 'sendUpdateRequest')
+
+        const pk = 1
+        const putData = { value: 1 }
+        const result = await TestModel.objects.update(1, putData)
+
+        const url = BASE_URL + pk + '/'
+        expect(mockedAxios.put.mock.calls).toHaveLength(1)
+        expect(mockedAxios.put.mock.calls).toEqual([[url, putData]])
+        expect(mockSendUpdateRequest).toBeCalledTimes(1)
+
+        expect(result).toBe(responseData)
+        mockSendUpdateRequest.mockRestore()
+      }, 'put')
+    })
+
+    it('should send update request with parents', async () => {
+      const responseData = { value: 1, id: 5 }
+      await withMockedAxios(responseData, async mockedAxios => {
+        const mockCheckServiceParents = jest.spyOn(ParentTestModel, 'checkServiceParents')
+        const mockSendUpdateRequest = jest.spyOn(ParentTestModel.objects, 'sendUpdateRequest')
+
+        const pk = 1
+        const putData = { value: 1 }
+        const parents: ServiceParent = { parent1: 'parent-1', parent2: 8 }
+        const result = await ParentTestModel.objects.update(1, putData, { parents })
+
+        const url = cu.format(PARENT_BASE_URL, parents) + pk + '/'
+        expect(mockedAxios.put.mock.calls).toHaveLength(1)
+        expect(mockedAxios.put.mock.calls).toEqual([[url, putData]])
+        expect(mockCheckServiceParents).toBeCalledTimes(1)
+        expect(mockSendUpdateRequest).toBeCalledTimes(1)
+
+        expect(result).toBe(responseData)
+        mockSendUpdateRequest.mockRestore()
+        mockCheckServiceParents.mockRestore()
+      }, 'put')
+    })
+
+    it('should handle error from service', async () => {
+      await withMockedAxios(null, async mockedAxios => {
+        const mockHandleResponseError = jest.spyOn(TestModel.objects, 'handleResponseError')
+        const customError = new Error('Handle error')
+        mockedAxios.put.mockRejectedValue(customError)
+
+        expect.assertions(2)
+        await expect(TestModel.objects.update(1, { value: 1 })).rejects.toBe(customError)
+        expect(mockHandleResponseError).toBeCalledTimes(1)
+        mockHandleResponseError.mockRestore()
+      }, 'put')
+    })
+  })
+
+  /**
+   * objects.delete()
+   */
+  describe('delete', () => {
+    it('should send delete request', async () => {
+      await withMockedAxios(null, async mockedAxios => {
+        const mockSendDeleteRequest = jest.spyOn(TestModel.objects, 'sendDeleteRequest')
+
+        const pk = 1
+        const result = await TestModel.objects.delete(pk)
+
+        const url = BASE_URL + pk + '/'
+        expect(mockedAxios.delete.mock.calls).toHaveLength(1)
+        expect(mockedAxios.delete.mock.calls).toEqual([[url]])
+        expect(mockSendDeleteRequest).toBeCalledTimes(1)
+
+        expect(result).toBeNull()
+        mockSendDeleteRequest.mockRestore()
+      }, 'delete')
+    })
+
+    it('should send delete request with parents', async () => {
+      await withMockedAxios(null, async mockedAxios => {
+        const mockCheckServiceParents = jest.spyOn(ParentTestModel, 'checkServiceParents')
+        const mockSendDeleteRequest = jest.spyOn(ParentTestModel.objects, 'sendDeleteRequest')
+
+        const pk = 1
+        const parents: ServiceParent = { parent1: 'parent-1', parent2: 8 }
+        const result = await ParentTestModel.objects.delete(pk, { parents })
+
+        const url = cu.format(PARENT_BASE_URL, parents) + pk + '/'
+        expect(mockedAxios.delete.mock.calls).toHaveLength(1)
+        expect(mockedAxios.delete.mock.calls).toEqual([[url]])
+        expect(mockCheckServiceParents).toBeCalledTimes(1)
+        expect(mockSendDeleteRequest).toBeCalledTimes(1)
+
+        expect(result).toBeNull()
+        mockSendDeleteRequest.mockRestore()
+        mockCheckServiceParents.mockRestore()
+      }, 'delete')
+    })
+
+    it('should handle error from service', async () => {
+      await withMockedAxios(null, async mockedAxios => {
+        const mockHandleResponseError = jest.spyOn(TestModel.objects, 'handleResponseError')
+        const customError = new Error('Handle error')
+        mockedAxios.delete.mockRejectedValue(customError)
+
+        expect.assertions(2)
+        await expect(TestModel.objects.delete(1)).rejects.toBe(customError)
+        expect(mockHandleResponseError).toBeCalledTimes(1)
+        mockHandleResponseError.mockRestore()
+      }, 'delete')
     })
   })
 

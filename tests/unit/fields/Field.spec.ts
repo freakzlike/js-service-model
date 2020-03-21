@@ -131,15 +131,15 @@ describe('fields/Field', () => {
     })
   })
 
-  describe('value', () => {
-    it('should return field value', () => {
+  describe('get value', () => {
+    it('should return field value', async () => {
       const data = { description: 'desc value' }
       const model = new TestModel(data)
 
       const field = new Field({}, { name: 'description', model })
       const mockValueGetter = jest.spyOn(field, 'valueGetter')
 
-      expect(field.value).toBe(data.description)
+      expect(await field.value).toBe(data.description)
 
       expect(mockValueGetter).toBeCalledTimes(1)
       expect(mockValueGetter.mock.calls[0]).toEqual([data])
@@ -148,6 +148,29 @@ describe('fields/Field', () => {
     it('should throw FieldNotBoundException', () => {
       const field = new Field()
       expect(() => field.value).toThrow(FieldNotBoundException)
+    })
+  })
+
+  describe('set value', () => {
+    it('should return field value', () => {
+      const data = { description: 'desc value' }
+      const model = new TestModel(data)
+      const value = 'new value'
+
+      const field = new Field({}, { name: 'description', model })
+      const mockValueSetter = jest.spyOn(field, 'valueSetter')
+
+      field.value = value
+
+      expect(data.description).toBe(value)
+
+      expect(mockValueSetter).toBeCalledTimes(1)
+      expect(mockValueSetter.mock.calls[0]).toEqual([value, data])
+    })
+
+    it('should throw FieldNotBoundException', () => {
+      const field = new Field()
+      expect(() => (field.value = 1)).toThrow(FieldNotBoundException)
     })
   })
 
@@ -265,6 +288,58 @@ describe('fields/Field', () => {
       expect(field.valueGetter({ struct: { dir: { field: nestedData } } })).toBe(nestedData)
       const valueFunc = () => 5
       expect(field.valueGetter({ struct: { dir: { field: valueFunc } } })).toBe(valueFunc)
+    })
+  })
+
+  describe('valueSetter', () => {
+    it('should set value', () => {
+      const value = { value: 1 }
+      const data: any = {}
+      const field = new Field({}, { name: 'field' })
+      field.valueSetter(value, data)
+      expect(data).toEqual({ field: value })
+      expect(data.field).toBe(value)
+
+      const newValue = { value: 2 }
+      field.valueSetter(newValue, data)
+      expect(data).toEqual({ field: newValue })
+      expect(data.field).toBe(newValue)
+    })
+
+    it('should set value nested attribute', () => {
+      const value = { value: 1 }
+      const data: any = {}
+      const field = new Field({ attributeName: 'nested.obj.field' }, { name: 'field' })
+      field.valueSetter(value, data)
+      expect(data).toEqual({ nested: { obj: { field: value } } })
+      expect(data.nested.obj.field).toBe(value)
+    })
+
+    it('should set value update nested attribute', () => {
+      const value = { value: 1 }
+      const data: any = { nested: { value: 2 }, value: 3 }
+      const field = new Field({ attributeName: 'nested.obj.field' }, { name: 'field' })
+      field.valueSetter(value, data)
+      expect(data).toEqual({ nested: { value: 2, obj: { field: value } }, value: 3 })
+      expect(data.nested.obj.field).toBe(value)
+    })
+
+    it('should set value update nested attribute null', () => {
+      const value = { value: 1 }
+      const data: any = { nested: { obj: null } }
+      const field = new Field({ attributeName: 'nested.obj.field' }, { name: 'field' })
+      field.valueSetter(value, data)
+      expect(data).toEqual({ nested: { obj: { field: value } } })
+      expect(data.nested.obj.field).toBe(value)
+    })
+
+    it('should set value update nested only attribute', () => {
+      const value = { value: 1 }
+      const data: any = { nested: { obj: { field: { value: 2 } } } }
+      const field = new Field({ attributeName: 'nested.obj.field' }, { name: 'field' })
+      field.valueSetter(value, data)
+      expect(data).toEqual({ nested: { obj: { field: value } } })
+      expect(data.nested.obj.field).toBe(value)
     })
   })
 })

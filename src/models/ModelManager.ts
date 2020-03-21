@@ -2,7 +2,14 @@ import Dictionary from '../types/Dictionary'
 import { ServiceModel } from './ServiceModel'
 import { ServiceStoreOptions } from '../types/store/ServiceStore'
 import axios, { AxiosRequestConfig } from 'axios'
-import { ResponseData, RetrieveInterfaceParams } from '../types/models/ModelManager'
+import {
+  ResponseData,
+  RetrieveInterfaceParams,
+  PrimaryKey,
+  DeleteInterfaceParams,
+  CreateInterfaceParams,
+  UpdateInterfaceParams
+} from '../types/models/ModelManager'
 import {
   APIException,
   BadRequestAPIException,
@@ -24,23 +31,33 @@ export class ModelManager {
   }
 
   /**
+   * Fill ServiceStoreOptions default options from params
+   */
+  protected getServiceStoreOptions (options: ServiceStoreOptions, params: RetrieveInterfaceParams | undefined): ServiceStoreOptions {
+    return {
+      noCache: Boolean(params && params.noCache),
+      noRequestAggregation: Boolean(params && params.noRequestAggregation),
+      refreshCache: Boolean(params && params.refreshCache),
+      ...options
+    }
+  }
+
+  /**
    * Retrieve specific model instance
    * @param pk
    * @param params
    */
-  public async detail (pk: string | number, params?: RetrieveInterfaceParams): Promise<ServiceModel> {
+  public async detail (pk: PrimaryKey, params?: RetrieveInterfaceParams): Promise<ServiceModel> {
     const parents = params && params.parents
 
     const Model = this.model
-    Model.checkServiceParents(parents)
-
     const url = await Model.getDetailUrl(pk, parents)
 
-    const options: ServiceStoreOptions = {
+    const options = this.getServiceStoreOptions({
       key: url,
       sendRequest: this.sendDetailRequest.bind(this),
       args: [url, pk, params]
-    }
+    }, params)
 
     const data: Dictionary<any> = await Model.store.getData(options)
     return new Model(data)
@@ -55,22 +72,53 @@ export class ModelManager {
     const filterParams = params && params.filter
 
     const Model = this.model
-    Model.checkServiceParents(parents)
-
-    const url = await this.model.getListUrl(parents)
+    const url = await Model.getListUrl(parents)
     const keyBuilder = [url]
     if (filterParams && Object.keys(filterParams).length > 0) {
       keyBuilder.push(JSON.stringify(filterParams))
     }
 
-    const options: ServiceStoreOptions = {
+    const options = this.getServiceStoreOptions({
       key: keyBuilder.join('?'),
       sendRequest: this.sendListRequest.bind(this),
       args: [url, params]
-    }
+    }, params)
 
     const dataList: Array<ResponseData> = await Model.store.getData(options)
     return dataList.map(data => new Model(data))
+  }
+
+  /**
+   * Create single instance
+   */
+  public async create (data: any, params?: CreateInterfaceParams): Promise<any> {
+    const parents = params && params.parents
+
+    const Model = this.model
+    const url = await Model.getListUrl(parents)
+    return this.sendCreateRequest(url, data, params)
+  }
+
+  /**
+   * Update single instance
+   */
+  public async update (pk: PrimaryKey, data: any, params?: UpdateInterfaceParams): Promise<any> {
+    const parents = params && params.parents
+
+    const Model = this.model
+    const url = await Model.getDetailUrl(pk, parents)
+    return this.sendUpdateRequest(url, pk, data, params)
+  }
+
+  /**
+   * Delete single instance
+   */
+  public async delete (pk: PrimaryKey, params?: DeleteInterfaceParams): Promise<null> {
+    const parents = params && params.parents
+
+    const Model = this.model
+    const url = await Model.getDetailUrl(pk, parents)
+    return this.sendDeleteRequest(url, pk, params)
   }
 
   /**
@@ -97,7 +145,7 @@ export class ModelManager {
   public async sendDetailRequest (
     options: ServiceStoreOptions,
     url: string,
-    pk: string | number,
+    pk: PrimaryKey,
     params?: RetrieveInterfaceParams
   ): Promise<ResponseData> {
     const config = await this.buildRetrieveRequestConfig(params)
@@ -123,7 +171,7 @@ export class ModelManager {
     options: ServiceStoreOptions,
     data: Array<ResponseData>,
     url: string,
-    pk: string | number,
+    pk: PrimaryKey,
     params?: RetrieveInterfaceParams
   ): Promise<ResponseData> {
     return data
@@ -165,6 +213,44 @@ export class ModelManager {
     params?: RetrieveInterfaceParams
   ): Promise<Array<ResponseData>> {
     return data
+  }
+
+  /**
+   * Send actual create service request
+   */
+  public async sendCreateRequest (url: string, data: any, params?: CreateInterfaceParams): Promise<any> {
+    let response
+    try {
+      response = await axios.post(url, data)
+    } catch (error) {
+      throw await this.handleResponseError(error)
+    }
+    return response.data
+  }
+
+  /**
+   * Send actual update service request
+   */
+  public async sendUpdateRequest (url: string, pk: PrimaryKey, data: any, params?: UpdateInterfaceParams): Promise<any> {
+    let response
+    try {
+      response = await axios.put(url, data)
+    } catch (error) {
+      throw await this.handleResponseError(error)
+    }
+    return response.data
+  }
+
+  /**
+   * Send actual delete service request
+   */
+  public async sendDeleteRequest (url: string, pk: PrimaryKey, params?: DeleteInterfaceParams): Promise<null> {
+    try {
+      await axios.delete(url)
+    } catch (error) {
+      throw await this.handleResponseError(error)
+    }
+    return null
   }
 
   /**

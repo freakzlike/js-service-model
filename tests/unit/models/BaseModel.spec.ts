@@ -96,25 +96,35 @@ describe('models/BaseModel', () => {
   })
 
   describe('val', () => {
-    it('should return correct values', () => {
-      const data = {
-        name: 'Name',
-        obj: { a: 1 }
+    class TestModel extends BaseModel {
+      protected static fieldsDef = {
+        name: new Field(),
+        obj: new Field(),
+        description: new Field()
       }
+    }
 
-      class TestModel extends BaseModel {
-        protected static fieldsDef = {
-          name: new Field(),
-          obj: new Field(),
-          description: new Field()
-        }
-      }
+    const data = {
+      name: 'Name',
+      obj: { a: 1 }
+    }
 
-      const model = new TestModel(data)
-      expect(model.val.name).toBe(data.name)
-      expect(model.val.obj).toBe(data.obj)
-      expect(model.val.description).toBeNull()
+    const model = new TestModel(data)
+
+    it('should return correct values', async () => {
+      expect(await model.val.name).toBe(data.name)
+      expect(await model.val.obj).toBe(data.obj)
+      expect(await model.val.description).toBeNull()
       expect(() => model.val.no_field).toThrow(NotDeclaredFieldException)
+    })
+
+    it('should set correct value', async () => {
+      const newName = 'New Name'
+      model.val.name = newName
+      expect(await model.val.name).toBe(newName)
+      expect(data.name).toBe(newName)
+      expect(() => (model.val.no_field = 'new value')).toThrow(NotDeclaredFieldException)
+      expect(data).toEqual({ name: newName, obj: data.obj })
     })
   })
 

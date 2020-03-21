@@ -1,6 +1,7 @@
 # Javascript Service Model
 
 [![Build](https://github.com/freakzlike/js-service-model/workflows/Build/badge.svg)](https://github.com/freakzlike/js-service-model/actions)
+[![codecov](https://codecov.io/gh/freakzlike/js-service-model/branch/master/graph/badge.svg)](https://codecov.io/gh/freakzlike/js-service-model)
 [![Latest Version](https://img.shields.io/npm/v/js-service-model.svg)](https://www.npmjs.com/package/js-service-model)
 [![License](https://img.shields.io/npm/l/js-service-model.svg)](https://github.com/freakzlike/js-service-model/blob/master/LICENSE)
 
@@ -34,11 +35,15 @@ Core library for handling REST service requests with caching, aggregation and mo
     * [Field definition (`fieldsDef`)](#field-definition-fieldsdef)
       * [Attribute name (`attributeName`)](#attribute-name-attributename)
       * [Field label and hint (`label`, `hint`)](#field-label-and-hint-label-hint)
+    * [Field API](#field-api)
     * [Custom/Computed fields](#customcomputed-fields)
     * [Field types](#field-types)
   * [ModelManager (`objects`)](#modelmanager-objects)
     * [Retrieve list of data (`objects.list()`)](#retrieve-list-of-data-objectslist)
     * [Retrieve single entry of data (`objects.detail()`)](#retrieve-single-entry-of-data-objectsdetail)
+    * [Create single entry (`objects.create()`)](#create-single-entry-objectscreate)
+    * [Update single entry (`objects.update()`)](#update-single-entry-objectsupdate)
+    * [Delete single entry (`objects.delete()`)](#delete-single-entry-objectsdelete)
     * [RetrieveInterfaceParams](#retrieveinterfaceparams)
     * [Exceptions](#exceptions)
     * [Custom ModelManager](#custom-modelmanager)
@@ -76,6 +81,15 @@ const album = await Album.objects.detail(1)
 
 // Retrieve filtered list from /albums/?userId=1
 const userAlbums = await Album.objects.list({filter: {userId: 1}})
+
+// Create new album
+await Album.objects.create({title: 'New album'})
+
+// Update an album
+await Album.objects.update(1, {title: 'Updated album'})
+
+// Delete specific album
+await Album.objects.delete(1)
 ```
 
 You can easily access the data from a model instance or define model [fields](#fields).
@@ -115,7 +129,12 @@ obj.fields
 Retrieve value from a single field.
 ```js
 // Retrieve value for field 'title'
-obj.val.title // output: My title
+await obj.val.title // output: My title
+```
+
+Set value of a field
+```js
+obj.val.title = 'New title'
 ```
 
 Retrieve field instance of given field name
@@ -186,6 +205,8 @@ When you start to request data from a service, for example `Album.objects.detail
 be saved as long as the request has not been completed. So when requesting `Album.objects.detail('1')` again (e.g from another component)
 this request will be attached to the first request which has not been completed yet and the request of the service will only made once.
 
+In case you want to avoid the request aggregation for a specific request see [`noRequestAggregation`](#retrieveinterfaceparams) in [ModelManager RetrieveInterfaceParams](#retrieveinterfaceparams).
+
 #### Cache
 
 With the static property `cacheDuration` it is possible to set the duration (in seconds) of how long the result of a response 
@@ -193,6 +214,10 @@ should be cached. The default value is 30 seconds. Currently the expired data wi
 
 * null: cache will not be removed
 * 0: no caching
+
+You can manually clear the complete cache including [aggregation](#aggregation) by calling `model.store.clear()`.
+
+In case you want to set cache options for a specific request see [ModelManager RetrieveInterfaceParams](#retrieveinterfaceparams).
 
 #### Parents
 
@@ -244,8 +269,8 @@ const myObj = new MyModel({
   last_name: 'Bloggs'
 })
 
-myObj.val.first_name // output: Joe
-myObj.val.last_name // output: Bloggs
+await myObj.val.first_name // output: Joe
+await myObj.val.last_name // output: Bloggs
 ```
 
 ##### Attribute name (`attributeName`)
@@ -275,9 +300,9 @@ const myObj = new MyModel({
   }
 })
 
-myObj.val.name // output: joe_bloggs
-myObj.val.address_city // output: New York
-myObj.val.address_street // output: Fifth Avenue
+await myObj.val.name // output: joe_bloggs
+await myObj.val.address_city // output: New York
+await myObj.val.address_street // output: Fifth Avenue
 ```
 
 ##### Field label and hint (`label`, `hint`)
@@ -305,6 +330,53 @@ await firstNameField.label // output: First name
 await firstNameField.hint // output: First name of the employee
 ```
 
+#### Field API
+
+```typescript
+class Field {
+  // Constructor takes field definition
+  constructor (def: FieldDef)
+
+  // Clone field instance
+  public clone (): Field
+
+  // Returns field name (Which has been set as key at fieldsDef.
+  // Will throw FieldNotBoundException in case field has not been bound to a model
+  public get name (): string
+
+  // Returns either attributeName from fieldsDef or field name
+  public get attributeName (): string
+
+  // Returns field definition
+  public get definition (): FieldDef
+
+  // Assigned model
+  // Will throw FieldNotBoundException in case field has not been bound to a model
+  public get model (): BaseModel
+
+  // Returns async field value from data by calling valueGetter with data of assigned model
+  public get value (): any
+
+  // Sets field value to model data by calling valueSetter with data of assigned model
+  public set value (value: any)
+
+  // Returns async field label from field definition
+  public get label (): Promise<string>
+
+  // Returns async field hint from field definition
+  public get hint (): Promise<string>
+
+  // Retrieve value from data structure according to attributeName
+  // Uses nested syntax from attributeName (e.g. "address.city" -> {address: {city: 'New York'}})
+  // Will return null if value is not available
+  public valueGetter (data: any): any
+
+  // Set value to data by using attributeName
+  // Will create nested structure from attributeName (e.g. "address.city" -> {address: {city: 'New York'}})
+  public valueSetter (value: any, data: Dictionary<any>): void
+}
+```
+
 #### Custom/Computed fields
 
 In case you want to define your own field class you just need to extend from `Field`. By overwriting the `valueGetter` method you are able to map the field value by yourself and create computed values.
@@ -329,7 +401,7 @@ const myObj = new MyModel({
   last_name: 'Bloggs'
 })
 
-myObj.val.full_name // output: Joe Bloggs
+await myObj.val.full_name // output: Joe Bloggs
 ```
 
 #### Field types
@@ -365,6 +437,40 @@ Album.objects.detail(1) // Request: GET /albums/1/
 Photo.objects.detail(5, {parents: {album: 1}}) // Request: GET /albums/1/photos/5/
 ```
 
+#### Create single entry (`objects.create()`)
+
+`objects.create()` is used to create a single entry under (e.g. `/albums/`) by sending a request with method `POST`.
+You can provide your data you want to send with post as first argument. The method will use [`getListUrl`](#urls) and [`sendCreateRequest`](#custom-modelmanager).
+
+Examples:
+```js
+Album.objects.create({title: 'New Album'}) // Request: POST /albums/
+Photo.objects.create({title: 'New Photo'}, {parents: {album: 1}}) // Request: POST /albums/1/photos/
+```
+
+#### Update single entry (`objects.update()`)
+
+`objects.update()` is used to update a single entry under (e.g. `/albums/1/`) by sending a request with method `PUT`.
+The first argument is the primary key which can either be a `string` or `number`. You can provide your data you want to send with put as first argument.
+The method will use [`getDetailUrl`](#urls) and [`sendUpdateRequest`](#custom-modelmanager).
+
+Examples:
+```js
+Album.objects.update(1, {title: 'Updated Album'}) // Request: PUT /albums/1/
+Photo.objects.update(5, {title: 'Updated Photo'}, {parents: {album: 1}}) // Request: PUT /albums/1/photos/5/
+```
+
+#### Delete single entry (`objects.delete()`)
+
+`objects.delete()` is used to delete a single entry under (e.g. `/albums/1/`) by sending a request with method `DELETE`.
+The method will use [`getDetailUrl`](#urls) and [`sendDeleteRequest`](#custom-modelmanager).
+
+Examples:
+```js
+Album.objects.delete(1) // Request: DELETE /albums/1/
+Photo.objects.delete(5, {parents: {album: 1}}) // Request: DELETE /albums/1/photos/5/
+```
+
 #### RetrieveInterfaceParams
 
 With `RetrieveInterfaceParams` you can provide additional parameters for `objects.list()` and `objects.detail()` e.g. for using query parameters or [parents](#parents).
@@ -376,7 +482,19 @@ Full structure example:
   parents: {album: 1},
 
   // Filter params as plain object which will be converted to query parameters (params in axios)
-  filter: {userId: 1}
+  filter: {userId: 1},
+
+  // Do not use and set response cache. Requests will still be aggregated. Already cached data will not be cleared
+  // Optional: default = false
+  noCache: false,
+
+  // Do not use request aggregation. Response will still be set and used from cache
+  // Optional: default = false
+  noRequestAggregation: false,
+
+  // Cache will not be used but set. Requests will still be aggregated
+  // Optional: default = false
+  refreshCache: false
 }
 ```
 
@@ -440,6 +558,12 @@ It is also possible to overwrite some methods to do the `list`/`detail` request 
   * Gets called when doing a list request with `objects.list()`
 * `sendDetailRequest`
   * Gets called when doing a detail with `objects.detail()`
+* `sendCreateRequest`
+  * Gets called when sending a create with `objects.create()`
+* `sendUpdateRequest`
+  * Gets called when sending a update with `objects.update()`
+* `sendDeleteRequest`
+  * Gets called when sending a delete with `objects.delete()`
 * `buildRetrieveRequestConfig`
   * Gets called from `sendListRequest` and `sendDetailRequest` and uses [`RetrieveInterfaceParams`](#retrieveinterfaceparams) to return the [request configuration](https://github.com/axios/axios#request-config) for [axios](https://github.com/axios/axios).
 * `mapListResponseBeforeCache`
@@ -452,17 +576,13 @@ It is also possible to overwrite some methods to do the `list`/`detail` request 
 ## Future
 
 * Models
-  * Default support of model creation, update and delete with POST, PUT/PATCH and DELETE request
   * Cache
-    * API to clear cache
     * Define a different cacheDuration for a specific request
-    * Argument on [`ModelManager`](#modelmanager-objects) methods to not use cache
     * Use cache from list response also for detail requests
     * "garbage collector" to remove expired cache
 * Fields
   * Different field types
   * Standalone field instances
-  * Methods to allow generation of input/display components according to field type
   * Accessing foreign key fields and retrieving foreign model instances
 * Global configuration with hooks
 * ...
