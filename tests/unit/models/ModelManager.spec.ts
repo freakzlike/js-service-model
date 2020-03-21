@@ -326,6 +326,64 @@ describe('models/ModelManager', () => {
   })
 
   /**
+   * objects.create()
+   */
+  describe('create', () => {
+    it('should send create request', async () => {
+      const responseData = { value: 1, id: 5 }
+      await withMockedAxios(responseData, async mockedAxios => {
+        const mockSendCreateRequest = jest.spyOn(TestModel.objects, 'sendCreateRequest')
+
+        const postData = { value: 1 }
+        const result = await TestModel.objects.create(postData)
+
+        const url = BASE_URL
+        expect(mockedAxios.post.mock.calls).toHaveLength(1)
+        expect(mockedAxios.post.mock.calls).toEqual([[url, postData]])
+        expect(mockSendCreateRequest).toBeCalledTimes(1)
+
+        expect(result).toBe(responseData)
+        mockSendCreateRequest.mockRestore()
+      }, 'post')
+    })
+
+    it('should send create request with parents', async () => {
+      const responseData = { value: 1, id: 5 }
+      await withMockedAxios(responseData, async mockedAxios => {
+        const mockCheckServiceParents = jest.spyOn(ParentTestModel, 'checkServiceParents')
+        const mockSendCreateRequest = jest.spyOn(ParentTestModel.objects, 'sendCreateRequest')
+
+        const postData = { value: 1 }
+        const parents: ServiceParent = { parent1: 'parent-1', parent2: 8 }
+        const result = await ParentTestModel.objects.create(postData, { parents })
+
+        const url = cu.format(PARENT_BASE_URL, parents)
+        expect(mockedAxios.post.mock.calls).toHaveLength(1)
+        expect(mockedAxios.post.mock.calls).toEqual([[url, postData]])
+        expect(mockCheckServiceParents).toBeCalledTimes(1)
+        expect(mockSendCreateRequest).toBeCalledTimes(1)
+
+        expect(result).toBe(responseData)
+        mockSendCreateRequest.mockRestore()
+        mockCheckServiceParents.mockRestore()
+      }, 'post')
+    })
+
+    it('should handle error from service', async () => {
+      await withMockedAxios(null, async mockedAxios => {
+        const mockHandleResponseError = jest.spyOn(TestModel.objects, 'handleResponseError')
+        const customError = new Error('Handle error')
+        mockedAxios.post.mockRejectedValue(customError)
+
+        expect.assertions(2)
+        await expect(TestModel.objects.create({ value: 1 })).rejects.toBe(customError)
+        expect(mockHandleResponseError).toBeCalledTimes(1)
+        mockHandleResponseError.mockRestore()
+      }, 'post')
+    })
+  })
+
+  /**
    * objects.delete()
    */
   describe('delete', () => {

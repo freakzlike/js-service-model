@@ -40,6 +40,7 @@ Core library for handling REST service requests with caching, aggregation and mo
   * [ModelManager (`objects`)](#modelmanager-objects)
     * [Retrieve list of data (`objects.list()`)](#retrieve-list-of-data-objectslist)
     * [Retrieve single entry of data (`objects.detail()`)](#retrieve-single-entry-of-data-objectsdetail)
+    * [Create single entry (`objects.create()`)](#create-single-entry-objectscreate)
     * [Delete single entry (`objects.delete()`)](#delete-single-entry-objectsdelete)
     * [RetrieveInterfaceParams](#retrieveinterfaceparams)
     * [Exceptions](#exceptions)
@@ -425,6 +426,17 @@ Album.objects.detail(1) // Request: GET /albums/1/
 Photo.objects.detail(5, {parents: {album: 1}}) // Request: GET /albums/1/photos/5/
 ```
 
+#### Create single entry (`objects.create()`)
+
+`objects.create()` is used to create a single entry under (e.g. `/albums/`) by sending a request with method `POST`.
+You can provide your data you want to send with post as first argument. The method will use [`getListUrl`](#urls) and [`sendCreateRequest`](#custom-modelmanager).
+
+Examples:
+```js
+Album.objects.create({title: 'New Album'}) // Request: POST /albums/
+Photo.objects.create({title: 'New Photo'}, {parents: {album: 1}}) // Request: POST /albums/1/photos/
+```
+
 #### Delete single entry (`objects.delete()`)
 
 `objects.delete()` is used to delete a single entry under (e.g. `/albums/1/`) by sending a request with method `DELETE`.
@@ -537,7 +549,6 @@ It is also possible to overwrite some methods to do the `list`/`detail` request 
 ## Future
 
 * Models
-  * Default support of model creation, update and delete with POST, PUT/PATCH and DELETE request
   * Cache
     * Define a different cacheDuration for a specific request
     * Use cache from list response also for detail requests

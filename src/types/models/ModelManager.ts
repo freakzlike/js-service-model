@@ -6,6 +6,9 @@ export type FilterParams = Dictionary<any>
 export type ResponseData = Dictionary<any>
 export type PrimaryKey = string | number
 
+/**
+ * Interface params for ModelManager detail and list
+ */
 export interface RetrieveInterfaceParams {
   /**
    * Service parents to handle nested RESTful services
@@ -29,6 +32,19 @@ export interface RetrieveInterfaceParams {
   refreshCache?: boolean
 }
 
+/**
+ * Interface params for ModelManager detail and list
+ */
+export interface CreateInterfaceParams {
+  /**
+   * Service parents to handle nested RESTful services
+   */
+  parents?: ServiceParent
+}
+
+/**
+ * Interface params for ModelManager delete
+ */
 export interface DeleteInterfaceParams {
   /**
    * Service parents to handle nested RESTful services

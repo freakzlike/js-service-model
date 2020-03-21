@@ -2,7 +2,13 @@ import Dictionary from '../types/Dictionary'
 import { ServiceModel } from './ServiceModel'
 import { ServiceStoreOptions } from '../types/store/ServiceStore'
 import axios, { AxiosRequestConfig } from 'axios'
-import { ResponseData, RetrieveInterfaceParams, PrimaryKey, DeleteInterfaceParams } from '../types/models/ModelManager'
+import {
+  ResponseData,
+  RetrieveInterfaceParams,
+  PrimaryKey,
+  DeleteInterfaceParams,
+  CreateInterfaceParams
+} from '../types/models/ModelManager'
 import {
   APIException,
   BadRequestAPIException,
@@ -79,6 +85,17 @@ export class ModelManager {
 
     const dataList: Array<ResponseData> = await Model.store.getData(options)
     return dataList.map(data => new Model(data))
+  }
+
+  /**
+   * Create single instance
+   */
+  public async create (data: any, params?: CreateInterfaceParams): Promise<any> {
+    const parents = params && params.parents
+
+    const Model = this.model
+    const url = await Model.getListUrl(parents)
+    return this.sendCreateRequest(url, data, params)
   }
 
   /**
@@ -189,10 +206,20 @@ export class ModelManager {
   }
 
   /**
+   * Send actual create service request
+   */
+  public async sendCreateRequest (url: string, data: any, params?: CreateInterfaceParams): Promise<any> {
+    let response
+    try {
+      response = await axios.post(url, data)
+    } catch (error) {
+      throw await this.handleResponseError(error)
+    }
+    return response.data
+  }
+
+  /**
    * Send actual delete service request
-   * @param url
-   * @param pk
-   * @param params
    */
   public async sendDeleteRequest (url: string, pk: PrimaryKey, params?: DeleteInterfaceParams): Promise<null> {
     try {
