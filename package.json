@@ -32,6 +32,7 @@
     "clean": "rimraf ./lib",
     "build": "npm run clean && tsc -p ./src/tsconfig.json",
     "test:unit": "vue-cli-service test:unit",
+    "test:coverage": "vue-cli-service test:unit --coverage",
     "test:lib": "vue-cli-service test:unit --config=jest.lib.config.js",
     "test:buildlib": "npm run build && npm run test:lib",
     "lint": "vue-cli-service lint --no-fix",
