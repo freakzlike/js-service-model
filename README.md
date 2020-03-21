@@ -1,6 +1,7 @@
 # Javascript Service Model
 
 [![Build](https://github.com/freakzlike/js-service-model/workflows/Build/badge.svg)](https://github.com/freakzlike/js-service-model/actions)
+[![codecov](https://codecov.io/gh/freakzlike/js-service-model/branch/master/graph/badge.svg)](https://codecov.io/gh/freakzlike/js-service-model)
 [![Latest Version](https://img.shields.io/npm/v/js-service-model.svg)](https://www.npmjs.com/package/js-service-model)
 [![License](https://img.shields.io/npm/l/js-service-model.svg)](https://github.com/freakzlike/js-service-model/blob/master/LICENSE)
 
